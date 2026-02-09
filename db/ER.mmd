@@ -1,0 +1,34 @@
+---
+config:
+  layout: dagre
+  theme: redux-dark-color
+---
+erDiagram
+    device {
+        varchar(12) id PK ""
+        varchar(15) ip  ""
+    }
+
+    workflow_device {
+        varchar(12) workflow_id FK ""
+        varchar(12) device_id FK ""
+    }
+
+    workflow {
+        varchar(12) id PK ""
+        text name ""
+    }
+
+    user {
+        varchar(12) id PK ""
+        text username  ""
+    }
+
+    gesture {
+        varchar(12) id PK ""
+    }
+
+    gesture |o--o{ user: "  "
+    user |o--o{ workflow: "  "
+    device }o--o| workflow_device: "  "
+    workflow_device |o--o{ workflow: "  "

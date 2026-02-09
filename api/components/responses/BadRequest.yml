@@ -1,0 +1,11 @@
+description: Bad Request
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "'192.145.3.23.100' is not a valid ip"
+      required:
+        - message

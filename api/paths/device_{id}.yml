@@ -1,0 +1,19 @@
+get:
+  description: Get device by ID
+  operationId: getDevice
+  parameters:
+    - name: id
+      in: path
+      description: Device ID
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Device record successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Device.yml
+    '404':
+      $ref: ../components/responses/NotFound.yaml

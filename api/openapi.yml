@@ -1,0 +1,14 @@
+openapi: 3.0.0
+info:
+  title: Decision Maker API
+  description: Decision Maker API
+  version: 1.0.0
+servers:
+  - url: /api
+paths:
+  /ping:
+    $ref: paths/ping.yml
+  /device:
+    $ref: paths/device.yml
+  /device/{id}:
+    $ref: paths/device_{id}.yml

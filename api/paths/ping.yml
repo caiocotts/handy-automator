@@ -1,0 +1,9 @@
+get:
+  description: Check Decision Maker's status
+  responses:
+    '200':
+      description: Decision Maker is up and running
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Pong.yml

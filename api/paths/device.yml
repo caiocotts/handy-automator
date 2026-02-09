@@ -1,0 +1,17 @@
+post:
+  description: Register a new device to the system
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/DeviceRequest.yml
+  responses:
+    '201':
+      description: Device record successfully created
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Device.yml
+    '400':
+      $ref: ../components/responses/BadRequest.yml
