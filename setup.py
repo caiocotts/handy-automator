@@ -51,7 +51,7 @@ check-db-status: ##@Miscellaneous Check if the database is ready to accept conne
 .PHONY:check-db-status
 
 help: ##@Miscellaneous Show this help message
-	@python {HELP_SCRIPT_PATH}
+	@python3 {HELP_SCRIPT_PATH}
 .PHONY: help
 """
 
