@@ -3,50 +3,56 @@
 import platform
 import os
 
-OS = platform.system()
 GO_CODE_PATH = os.path.join('.', 'decision-maker' )
+HELP_SCRIPT_PATH = os.path.join('.', 'scripts', 'help.py')
+MIGRATIONS_PATH = os.path.join('.', 'db', 'migrations')
 
 MAKEFILE_CONTENTS = \
-f"""GOOSE=go run github.com/pressly/goose/v3/cmd/goose@latest
+f"""GOOSE=go run "github.com/pressly/goose/v3/cmd/goose@latest"
+GOOSE_OPTS=-dir {MIGRATIONS_PATH} postgres
 
-dev: mup
+dev: ##@Development Start handy-automator in development mode
 	@cd {GO_CODE_PATH} &&\\
  	go run .
 .PHONY: dev
 
-gen-api:
+gen-api: ##@Development Generate API code from the OpenAPI spec
 	@cd {GO_CODE_PATH} &&\\
     go generate ./api/...
 .PHONY: gen-api
 
-start-db:
+start-db: ##@Database Instantiate a database container
 	@docker compose up -d
 .PHONY: start-db
 
-stop-db:
+stop-db: ##@Database Stop the database container
 	@docker compose down
 .PHONY: stop-db
 
-stop-and-erase-db:
+destroy-db: ##@Database Stop the database container and erase all its data
 	@docker compose down -v
-.PHONY: stop-and-erase-db
+.PHONY: destroy-db
 
-mup: start-db check-db-connectivity
-	@$(GOOSE) up
+mup: start-db check-db-status ##@Database Apply all migrations
+	@$(GOOSE) $(GOOSE_OPTS) up
 .PHONY: mup
 
-mdown: start-db check-db-connectivity
-	@$(GOOSE) down
+mdown: start-db check-db-status ##@Database Undo the last migration
+	@$(GOOSE) $(GOOSE_OPTS) down
 .PHONY: mdown
 
-check-db-connectivity:
-	@docker compose exec postgres bash /check-db-connection.sh
-.PHONY:check-db-connectivity
-
-migration:
+migration: ##@Database Create a new migration SQL file in db/migrations
 	@$(if $(strip $(name)),,$(error Usage: make migration name=name_of_migration_file))
-	@$(GOOSE) create $(name) sql
+	@$(GOOSE) $(GOOSE_OPTS) create $(name) sql
 .PHONY: migration
+
+check-db-status: ##@Miscellaneous Check if the database is ready to accept connections (internal)
+	@docker compose exec postgres bash /check-db-connection.sh
+.PHONY:check-db-status
+
+help: ##@Miscellaneous Show this help message
+	@python {HELP_SCRIPT_PATH}
+.PHONY: help
 """
 
 with open('Makefile', 'w') as f:
