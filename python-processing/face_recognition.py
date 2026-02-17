@@ -49,10 +49,13 @@ def detecting_bounding_box(frame):
         cv2.putText(frame, "AUTHORIZED",
                     (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
                     1, (0, 255, 0), 2)
+    else:
+        authenticated = False
+    
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_classifier.detectMultiScale(
-        gray, 1.05, 5, minSize=(50, 50)
+        gray, 1.05, 5, minSize=(100, 100)
     )
 
     current_time = time.time()
@@ -103,6 +106,9 @@ def check_faces(face_img):
             return name
 
     return None
+
+def is_authenticated():
+    return authenticated
 
 
 

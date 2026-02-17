@@ -35,11 +35,11 @@ def main():
             mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
 
             frame_timestamp_ms = int(time.time() * 1000)
+            if fr.is_authenticated():
+                recognizer.recognize_async(mp_image, frame_timestamp_ms)
 
-            recognizer.recognize_async(mp_image, frame_timestamp_ms)
-
-            if gr.latest_result:
-                frame = gr.draw_landmarks_on_image(frame, gr.latest_result)
+                if gr.latest_result:
+                    frame = gr.draw_landmarks_on_image(frame, gr.latest_result)
 
             cv2.imshow("Bounding Box Frame", frame)
 
