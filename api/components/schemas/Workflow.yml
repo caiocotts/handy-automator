@@ -1,0 +1,14 @@
+type: object
+properties:
+  id:
+    type: string
+    example: pXkHij_kJjXh
+  name:
+    type: string
+    example: Turn on bedroom lights
+  devices:
+    $ref: ../schemas/DeviceList.yml
+required:
+  - id
+  - name
+  - devices

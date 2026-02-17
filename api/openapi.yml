@@ -2,7 +2,7 @@ openapi: 3.0.0
 info:
   title: Decision Maker API
   description: Decision Maker API
-  version: 1.0.0
+  version: 0.0.1
 servers:
   - url: /api
 paths:
@@ -12,3 +12,9 @@ paths:
     $ref: paths/device.yml
   /device/{id}:
     $ref: paths/device_{id}.yml
+  /workflow:
+    $ref: paths/workflow.yml
+  /workflow/{id}:
+    $ref: paths/workflow_{id}.yml
+  /workflow/{id}/devices:
+    $ref: paths/workflow_{id}_devices.yml
