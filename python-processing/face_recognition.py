@@ -3,17 +3,15 @@ from deepface import DeepFace
 import time
 from scipy.spatial.distance import cosine
 import os
+import mediapipe as mp
 
 os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2" # Silence warnings
-
-
 
 
 # Constants 
 face_classifier = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
 )
-
 cam = cv2.VideoCapture(0)
 DB_PATH = os.path.join(os.path.abspath(os.getcwd()), "database")
 last_check = 0
@@ -45,30 +43,32 @@ for file in os.listdir(AUTH_DIR):
 
 def detecting_bounding_box(frame):
     global last_check, authenticated
-
     # Skip detection during cooldown
     if authenticated and time.time() - last_auth_time < AUTH_LOCK_TIME:
         cv2.putText(frame, "AUTHORIZED",
                     (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
                     1, (0, 255, 0), 2)
-        return []
 
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_classifier.detectMultiScale(
-        gray, 1.05, 5, minSize=(100, 100)
+        gray, 1.05, 5, minSize=(50, 50)
     )
 
     current_time = time.time()
 
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
-
+      
         if current_time - last_check > CHECK_INTERVAL:
             face_crop = frame[y:y+h, x:x+w]
             authorize(face_crop)
+            if authenticated:
+                face_centre = ((x+w) /2 ,(y+h) / 2)
+                print(face_centre)
+                # Can use these values to move camera
+
             last_check = current_time
 
-    return faces
 
 
 
@@ -102,6 +102,7 @@ def check_faces(face_img):
             return name
 
     return None
+
 
 
 

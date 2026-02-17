@@ -2,3 +2,4 @@ Makefile
 .env
 .idea
 .vscode
+__pycache__
