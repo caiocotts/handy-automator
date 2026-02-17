@@ -8,7 +8,6 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2" # Silence warnings
 
 
 
-
 # Constants 
 face_classifier = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
