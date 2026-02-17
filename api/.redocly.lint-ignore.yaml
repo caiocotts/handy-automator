@@ -1,0 +1,30 @@
+# This file instructs Redocly's linter to ignore the rules contained for specific parts of your API.
+# See https://redocly.com/docs/cli/ for more information.
+openapi.yml:
+  info-license:
+    - '#/info'
+paths/ping.yml:
+  security-defined:
+    - '#/get'
+  operation-4xx-response:
+    - '#/get/responses'
+
+#TODO implement security for all of the following endpoints
+paths/device.yml:
+  security-defined:
+    - '#/post'
+paths/device_{id}.yml:
+  security-defined:
+    - '#/get'
+    - '#/delete'
+paths/workflow.yml:
+  security-defined:
+    - '#/post'
+paths/workflow_{id}.yml:
+  security-defined:
+    - '#/get'
+    - '#/delete'
+    - '#/patch'
+paths/workflow_{id}_devices.yml:
+  security-defined:
+    - '#/put'

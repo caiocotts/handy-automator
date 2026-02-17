@@ -1,5 +1,5 @@
 get:
-  description: Get device by ID
+  summary: Get device by ID
   operationId: getDevice
   parameters:
     - name: id
@@ -16,4 +16,19 @@ get:
           schema:
             $ref: ../components/schemas/Device.yml
     '404':
-      $ref: ../components/responses/NotFound.yaml
+      $ref: ../components/responses/NotFound.yml
+delete:
+  summary: Delete device by ID
+  operationId: deleteDevice
+  parameters:
+    - name: id
+      in: path
+      description: Device ID
+      required: false
+      schema:
+        type: string
+  responses:
+    '204':
+      description: Device record successfully deleted
+    '404':
+      $ref: ../components/responses/NotFound.yml

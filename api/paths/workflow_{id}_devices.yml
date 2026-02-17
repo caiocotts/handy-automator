@@ -1,0 +1,31 @@
+put:
+  summary: Associate devices to a workflow
+  operationId: associateWorkflowDevices
+  parameters:
+    - name: id
+      in: path
+      description: Workflow ID
+      required: true
+      schema:
+        type: string
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          properties:
+            devices:
+              $ref: ../components/schemas/DeviceList.yml
+  responses:
+    '201':
+      description: Device associated to workflow successfully
+      content:
+        application/json:
+          schema:
+            properties:
+              devices:
+                $ref: ../components/schemas/DeviceList.yml
+    '400':
+      $ref: ../components/responses/BadRequest.yml
+    '404':
+      $ref: ../components/responses/NotFound.yml

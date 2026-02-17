@@ -1,5 +1,6 @@
 get:
-  description: Check Decision Maker's status
+  summary: Check Decision Maker's status
+  operationId: ping
   responses:
     '200':
       description: Decision Maker is up and running

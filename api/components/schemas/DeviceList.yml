@@ -1,0 +1,13 @@
+type: array
+items:
+  $ref: ../schemas/Device.yml
+example: [
+  {
+    "id": "pXkHij_kJjXh",
+    "ip": "192.168.1.18"
+  },
+  {
+    "id": "xzoYPLkuPuT0",
+    "ip": "192.168.1.42"
+  }
+]

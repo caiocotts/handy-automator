@@ -1,18 +1,18 @@
 post:
-  summary: Create a device
-  operationId: createDevice
+  summary: Create a workflow
+  operationId: createWorkflow
   requestBody:
     required: true
     content:
       application/json:
         schema:
-          $ref: ../components/schemas/DevicePostRequest.yml
+          $ref: ../components/schemas/WorkflowPostRequest.yml
   responses:
     '201':
-      description: Device record successfully created
+      description: Workflow record successfully created
       content:
         application/json:
           schema:
-            $ref: ../components/schemas/Device.yml
+            $ref: ../components/schemas/Workflow.yml
     '400':
       $ref: ../components/responses/BadRequest.yml

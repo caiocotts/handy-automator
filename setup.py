@@ -6,6 +6,7 @@ import os
 GO_CODE_PATH = os.path.join('.', 'decision-maker' )
 HELP_SCRIPT_PATH = os.path.join('.', 'scripts', 'help.py')
 MIGRATIONS_PATH = os.path.join('.', 'db', 'migrations')
+API_SPEC_PATH = os.path.join('.', 'api')
 
 MAKEFILE_CONTENTS = \
 f"""GOOSE=go run "github.com/pressly/goose/v3/cmd/goose@latest"
@@ -20,6 +21,10 @@ gen-api: ##@Development Generate API code from the OpenAPI spec
 	@cd {GO_CODE_PATH} &&\\
     go generate ./api/...
 .PHONY: gen-api
+
+lint-api: ##@Development Lint OpenAPI spec
+	@docker run --rm -tv {API_SPEC_PATH}:/spec redocly/cli lint openapi.yml
+.PHONY: lint-api
 
 start-db: ##@Database Instantiate a database container
 	@docker compose up -d
