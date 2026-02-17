@@ -1,0 +1,62 @@
+get:
+  summary: Get workflow by ID
+  operationId: getWorkflow
+  parameters:
+    - name: id
+      in: path
+      description: Workflow ID
+      required: true
+      schema:
+        type: string
+  responses:
+    '200':
+      description: Workflow record successfully retrieved
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Workflow.yml
+    '404':
+      $ref: ../components/responses/NotFound.yml
+
+delete:
+  summary: Delete workflow by ID
+  operationId: deleteWorkflow
+  parameters:
+    - name: id
+      in: path
+      description: Workflow ID
+      required: true
+      schema:
+        type: string
+  responses:
+    '204':
+      description: Workflow record successfully deleted
+    '404':
+      $ref: ../components/responses/NotFound.yml
+
+patch:
+  summary: Update workflow
+  operationId: updateWorkflow
+  parameters:
+    - name: id
+      in: path
+      description: Workflow ID
+      required: true
+      schema:
+        type: string
+  requestBody:
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/WorkflowPatchRequest.yml
+  responses:
+    '200':
+      description: Workflow record successfully updated
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/Workflow.yml
+    '400':
+      $ref: ../components/responses/BadRequest.yml
+    '404':
+      $ref: ../components/responses/NotFound.yml

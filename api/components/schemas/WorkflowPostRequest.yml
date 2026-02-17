@@ -1,0 +1,7 @@
+type: object
+properties:
+  name:
+    type: string
+    example: Turn on bedroom lights
+required:
+  - name
