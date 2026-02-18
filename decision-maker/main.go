@@ -21,6 +21,8 @@ func init() {
 }
 
 func main() {
+	const baseUrl = "/api"
+
 	fmt.Println(Banner())
 
 	db, err := postgres.GetInstance()
@@ -36,8 +38,23 @@ func main() {
 
 	router := chi.NewMux()
 	router.Use(middleware.Logger)
+
+	router.Get(baseUrl+"/docs", func(w http.ResponseWriter, _ *http.Request) {
+		_, err := w.Write(api.Docs)
+		if err != nil {
+			log.Print(err)
+		}
+	})
+
+	router.Get(baseUrl+"/spec", func(w http.ResponseWriter, _ *http.Request) {
+		_, err := w.Write(api.Spec)
+		if err != nil {
+			log.Print(err)
+		}
+	})
+
 	si := api.NewStrictHandler(server, nil)
-	h := api.HandlerFromMuxWithBaseURL(si, router, "/api")
+	h := api.HandlerFromMuxWithBaseURL(si, router, baseUrl)
 
 	log.Println("ready to accept requests")
 
