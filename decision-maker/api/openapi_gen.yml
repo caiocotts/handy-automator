@@ -1,0 +1,278 @@
+openapi: 3.0.0
+info:
+  title: Decision Maker API
+  description: Decision Maker API
+  version: 0.0.1
+servers:
+  - url: /api
+paths:
+  /ping:
+    get:
+      summary: Check Decision Maker's status
+      operationId: ping
+      responses:
+        '200':
+          description: Decision Maker is up and running
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Pong'
+  /device:
+    post:
+      summary: Create a device
+      operationId: createDevice
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DevicePostRequest'
+      responses:
+        '201':
+          description: Device record successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /device/{id}:
+    get:
+      summary: Get device by ID
+      operationId: getDevice
+      parameters:
+        - name: id
+          in: path
+          description: Device ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Device record successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Device'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete device by ID
+      operationId: deleteDevice
+      parameters:
+        - name: id
+          in: path
+          description: Device ID
+          required: false
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Device record successfully deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /workflow:
+    post:
+      summary: Create a workflow
+      operationId: createWorkflow
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowPostRequest'
+      responses:
+        '201':
+          description: Workflow record successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /workflow/{id}:
+    get:
+      summary: Get workflow by ID
+      operationId: getWorkflow
+      parameters:
+        - name: id
+          in: path
+          description: Workflow ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Workflow record successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '404':
+          $ref: '#/components/responses/NotFound'
+    delete:
+      summary: Delete workflow by ID
+      operationId: deleteWorkflow
+      parameters:
+        - name: id
+          in: path
+          description: Workflow ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Workflow record successfully deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
+    patch:
+      summary: Update workflow
+      operationId: updateWorkflow
+      parameters:
+        - name: id
+          in: path
+          description: Workflow ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkflowPatchRequest'
+      responses:
+        '200':
+          description: Workflow record successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workflow'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+  /workflow/{id}/devices:
+    put:
+      summary: Associate devices to a workflow
+      operationId: associateWorkflowDevices
+      parameters:
+        - name: id
+          in: path
+          description: Workflow ID
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              properties:
+                devices:
+                  $ref: '#/components/schemas/DeviceList'
+      responses:
+        '201':
+          description: Device associated to workflow successfully
+          content:
+            application/json:
+              schema:
+                properties:
+                  devices:
+                    $ref: '#/components/schemas/DeviceList'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '404':
+          $ref: '#/components/responses/NotFound'
+components:
+  schemas:
+    Pong:
+      type: object
+      properties:
+        status:
+          type: string
+          example: ok
+      required:
+        - status
+    DevicePostRequest:
+      type: object
+      properties:
+        ip:
+          type: string
+          example: 192.168.1.18
+      required:
+        - ip
+    Device:
+      type: object
+      properties:
+        id:
+          type: string
+          example: pXkHij_kJjXh
+        ip:
+          type: string
+          example: 192.168.1.18
+      required:
+        - id
+        - ip
+    WorkflowPostRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Turn on bedroom lights
+      required:
+        - name
+    DeviceList:
+      type: array
+      items:
+        $ref: '#/components/schemas/Device'
+      example:
+        - id: pXkHij_kJjXh
+          ip: 192.168.1.18
+        - id: xzoYPLkuPuT0
+          ip: 192.168.1.42
+    Workflow:
+      type: object
+      properties:
+        id:
+          type: string
+          example: pXkHij_kJjXh
+        name:
+          type: string
+          example: Turn on bedroom lights
+        devices:
+          $ref: '#/components/schemas/DeviceList'
+      required:
+        - id
+        - name
+        - devices
+    WorkflowPatchRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Turn on bedroom lights
+  responses:
+    BadRequest:
+      description: Bad Request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: '''192.145.3.23.100'' is not a valid ip'
+            required:
+              - message
+    NotFound:
+      description: Not Found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: unable to find requested record
+            required:
+              - message
