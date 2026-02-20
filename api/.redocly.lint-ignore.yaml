@@ -13,12 +13,18 @@ paths/ping.yml:
 paths/device.yml:
   security-defined:
     - '#/post'
+    - '#/get'
+  operation-4xx-response:
+    - '#/get/responses'
 paths/device_{id}.yml:
   security-defined:
     - '#/get'
     - '#/delete'
 paths/workflow.yml:
+  operation-4xx-response:
+    - '#/get/responses'
   security-defined:
+    - '#/get'
     - '#/post'
 paths/workflow_{id}.yml:
   security-defined:
