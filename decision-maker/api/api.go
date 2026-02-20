@@ -1,3 +1,5 @@
+//go:generate docker run --rm -t -v ../../api:/spec -v .:/go redocly/cli build-docs openapi.yml -o /go/docs_gen.html
+//go:generate docker run --rm -t -v ../../api:/spec -v .:/go redocly/cli bundle openapi.yml -o /go/openapi_gen.yml
 //go:generate go run github.com/oapi-codegen/oapi-codegen/v2/cmd/oapi-codegen@latest -config "api_config.yml" "../../api/openapi.yml"
 
 package api
@@ -6,11 +8,18 @@ import (
 	"context"
 	"decisionMaker/persistence"
 	"decisionMaker/service/device"
+	_ "embed"
 	"errors"
 	"fmt"
 	"log"
 	"net"
 )
+
+//go:embed openapi_gen.yml
+var Spec []byte
+
+//go:embed docs_gen.html
+var Docs []byte
 
 type Server struct {
 	deviceService *device.Service
