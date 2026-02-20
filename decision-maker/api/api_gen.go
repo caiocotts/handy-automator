@@ -21,43 +21,152 @@ import (
 	strictnethttp "github.com/oapi-codegen/runtime/strictmiddleware/nethttp"
 )
 
-// PostDeviceJSONBody defines parameters for PostDevice.
-type PostDeviceJSONBody struct {
+// CreateDeviceJSONBody defines parameters for CreateDevice.
+type CreateDeviceJSONBody struct {
+	// Ip Device IP
 	Ip string `json:"ip"`
 }
 
-// PostDeviceJSONRequestBody defines body for PostDevice for application/json ContentType.
-type PostDeviceJSONRequestBody PostDeviceJSONBody
+// CreateWorkflowJSONBody defines parameters for CreateWorkflow.
+type CreateWorkflowJSONBody struct {
+	// Name Workflow name
+	Name string `json:"name"`
+}
+
+// UpdateWorkflowJSONBody defines parameters for UpdateWorkflow.
+type UpdateWorkflowJSONBody struct {
+	// Name Workflow name
+	Name *string `json:"name,omitempty"`
+}
+
+// AssociateWorkflowDevicesJSONBody defines parameters for AssociateWorkflowDevices.
+type AssociateWorkflowDevicesJSONBody struct {
+	// Devices List of devices
+	Devices *[]struct {
+		// Id Device ID
+		Id string `json:"id"`
+
+		// Ip Device IP
+		Ip string `json:"ip"`
+	} `json:"devices,omitempty"`
+}
+
+// CreateDeviceJSONRequestBody defines body for CreateDevice for application/json ContentType.
+type CreateDeviceJSONRequestBody CreateDeviceJSONBody
+
+// CreateWorkflowJSONRequestBody defines body for CreateWorkflow for application/json ContentType.
+type CreateWorkflowJSONRequestBody CreateWorkflowJSONBody
+
+// UpdateWorkflowJSONRequestBody defines body for UpdateWorkflow for application/json ContentType.
+type UpdateWorkflowJSONRequestBody UpdateWorkflowJSONBody
+
+// AssociateWorkflowDevicesJSONRequestBody defines body for AssociateWorkflowDevices for application/json ContentType.
+type AssociateWorkflowDevicesJSONRequestBody AssociateWorkflowDevicesJSONBody
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
-
+	// Get all devices
+	// (GET /device)
+	GetDevices(w http.ResponseWriter, r *http.Request)
+	// Create a device
 	// (POST /device)
-	PostDevice(w http.ResponseWriter, r *http.Request)
-
+	CreateDevice(w http.ResponseWriter, r *http.Request)
+	// Delete device by ID
+	// (DELETE /device/{id})
+	DeleteDevice(w http.ResponseWriter, r *http.Request, id string)
+	// Get device by ID
 	// (GET /device/{id})
 	GetDevice(w http.ResponseWriter, r *http.Request, id string)
-
+	// Check Decision Maker's status
 	// (GET /ping)
-	GetPing(w http.ResponseWriter, r *http.Request)
+	Ping(w http.ResponseWriter, r *http.Request)
+	// Get all workflows
+	// (GET /workflow)
+	GetWorkflows(w http.ResponseWriter, r *http.Request)
+	// Create a workflow
+	// (POST /workflow)
+	CreateWorkflow(w http.ResponseWriter, r *http.Request)
+	// Delete workflow by ID
+	// (DELETE /workflow/{id})
+	DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string)
+	// Get workflow by ID
+	// (GET /workflow/{id})
+	GetWorkflow(w http.ResponseWriter, r *http.Request, id string)
+	// Update workflow
+	// (PATCH /workflow/{id})
+	UpdateWorkflow(w http.ResponseWriter, r *http.Request, id string)
+	// Associate devices to a workflow
+	// (PUT /workflow/{id}/devices)
+	AssociateWorkflowDevices(w http.ResponseWriter, r *http.Request, id string)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
 
 type Unimplemented struct{}
 
-// (POST /device)
-func (_ Unimplemented) PostDevice(w http.ResponseWriter, r *http.Request) {
+// Get all devices
+// (GET /device)
+func (_ Unimplemented) GetDevices(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Create a device
+// (POST /device)
+func (_ Unimplemented) CreateDevice(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete device by ID
+// (DELETE /device/{id})
+func (_ Unimplemented) DeleteDevice(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get device by ID
 // (GET /device/{id})
 func (_ Unimplemented) GetDevice(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Check Decision Maker's status
 // (GET /ping)
-func (_ Unimplemented) GetPing(w http.ResponseWriter, r *http.Request) {
+func (_ Unimplemented) Ping(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get all workflows
+// (GET /workflow)
+func (_ Unimplemented) GetWorkflows(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Create a workflow
+// (POST /workflow)
+func (_ Unimplemented) CreateWorkflow(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete workflow by ID
+// (DELETE /workflow/{id})
+func (_ Unimplemented) DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Get workflow by ID
+// (GET /workflow/{id})
+func (_ Unimplemented) GetWorkflow(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Update workflow
+// (PATCH /workflow/{id})
+func (_ Unimplemented) UpdateWorkflow(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Associate devices to a workflow
+// (PUT /workflow/{id}/devices)
+func (_ Unimplemented) AssociateWorkflowDevices(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -70,11 +179,50 @@ type ServerInterfaceWrapper struct {
 
 type MiddlewareFunc func(http.Handler) http.Handler
 
-// PostDevice operation middleware
-func (siw *ServerInterfaceWrapper) PostDevice(w http.ResponseWriter, r *http.Request) {
+// GetDevices operation middleware
+func (siw *ServerInterfaceWrapper) GetDevices(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.PostDevice(w, r)
+		siw.Handler.GetDevices(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateDevice operation middleware
+func (siw *ServerInterfaceWrapper) CreateDevice(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateDevice(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteDevice operation middleware
+func (siw *ServerInterfaceWrapper) DeleteDevice(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteDevice(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -109,11 +257,139 @@ func (siw *ServerInterfaceWrapper) GetDevice(w http.ResponseWriter, r *http.Requ
 	handler.ServeHTTP(w, r)
 }
 
-// GetPing operation middleware
-func (siw *ServerInterfaceWrapper) GetPing(w http.ResponseWriter, r *http.Request) {
+// Ping operation middleware
+func (siw *ServerInterfaceWrapper) Ping(w http.ResponseWriter, r *http.Request) {
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.GetPing(w, r)
+		siw.Handler.Ping(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetWorkflows operation middleware
+func (siw *ServerInterfaceWrapper) GetWorkflows(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetWorkflows(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateWorkflow operation middleware
+func (siw *ServerInterfaceWrapper) CreateWorkflow(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateWorkflow(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteWorkflow operation middleware
+func (siw *ServerInterfaceWrapper) DeleteWorkflow(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteWorkflow(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// GetWorkflow operation middleware
+func (siw *ServerInterfaceWrapper) GetWorkflow(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.GetWorkflow(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// UpdateWorkflow operation middleware
+func (siw *ServerInterfaceWrapper) UpdateWorkflow(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.UpdateWorkflow(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// AssociateWorkflowDevices operation middleware
+func (siw *ServerInterfaceWrapper) AssociateWorkflowDevices(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.AssociateWorkflowDevices(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -237,45 +513,124 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	}
 
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/device", wrapper.PostDevice)
+		r.Get(options.BaseURL+"/device", wrapper.GetDevices)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/device", wrapper.CreateDevice)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/device/{id}", wrapper.DeleteDevice)
 	})
 	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/device/{id}", wrapper.GetDevice)
 	})
 	r.Group(func(r chi.Router) {
-		r.Get(options.BaseURL+"/ping", wrapper.GetPing)
+		r.Get(options.BaseURL+"/ping", wrapper.Ping)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/workflow", wrapper.GetWorkflows)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/workflow", wrapper.CreateWorkflow)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/workflow/{id}", wrapper.DeleteWorkflow)
+	})
+	r.Group(func(r chi.Router) {
+		r.Get(options.BaseURL+"/workflow/{id}", wrapper.GetWorkflow)
+	})
+	r.Group(func(r chi.Router) {
+		r.Patch(options.BaseURL+"/workflow/{id}", wrapper.UpdateWorkflow)
+	})
+	r.Group(func(r chi.Router) {
+		r.Put(options.BaseURL+"/workflow/{id}/devices", wrapper.AssociateWorkflowDevices)
 	})
 
 	return r
 }
 
-type PostDeviceRequestObject struct {
-	Body *PostDeviceJSONRequestBody
+type GetDevicesRequestObject struct {
 }
 
-type PostDeviceResponseObject interface {
-	VisitPostDeviceResponse(w http.ResponseWriter) error
+type GetDevicesResponseObject interface {
+	VisitGetDevicesResponse(w http.ResponseWriter) error
 }
 
-type PostDevice201JSONResponse struct {
+type GetDevices200JSONResponse struct {
+	// Devices List of devices
+	Devices *[]struct {
+		// Id Device ID
+		Id string `json:"id"`
+
+		// Ip Device IP
+		Ip string `json:"ip"`
+	} `json:"devices,omitempty"`
+}
+
+func (response GetDevices200JSONResponse) VisitGetDevicesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateDeviceRequestObject struct {
+	Body *CreateDeviceJSONRequestBody
+}
+
+type CreateDeviceResponseObject interface {
+	VisitCreateDeviceResponse(w http.ResponseWriter) error
+}
+
+type CreateDevice201JSONResponse struct {
+	// Id Device ID
 	Id string `json:"id"`
+
+	// Ip Device IP
 	Ip string `json:"ip"`
 }
 
-func (response PostDevice201JSONResponse) VisitPostDeviceResponse(w http.ResponseWriter) error {
+func (response CreateDevice201JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(201)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
-type PostDevice400JSONResponse struct {
+type CreateDevice400JSONResponse struct {
 	Message string `json:"message"`
 }
 
-func (response PostDevice400JSONResponse) VisitPostDeviceResponse(w http.ResponseWriter) error {
+func (response CreateDevice400JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteDeviceRequestObject struct {
+	Id string `json:"id"`
+}
+
+type DeleteDeviceResponseObject interface {
+	VisitDeleteDeviceResponse(w http.ResponseWriter) error
+}
+
+type DeleteDevice204Response struct {
+}
+
+func (response DeleteDevice204Response) VisitDeleteDeviceResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteDevice404JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response DeleteDevice404JSONResponse) VisitDeleteDeviceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -289,7 +644,10 @@ type GetDeviceResponseObject interface {
 }
 
 type GetDevice200JSONResponse struct {
+	// Id Device ID
 	Id string `json:"id"`
+
+	// Ip Device IP
 	Ip string `json:"ip"`
 }
 
@@ -311,35 +669,294 @@ func (response GetDevice404JSONResponse) VisitGetDeviceResponse(w http.ResponseW
 	return json.NewEncoder(w).Encode(response)
 }
 
-type GetPingRequestObject struct {
+type PingRequestObject struct {
 }
 
-type GetPingResponseObject interface {
-	VisitGetPingResponse(w http.ResponseWriter) error
+type PingResponseObject interface {
+	VisitPingResponse(w http.ResponseWriter) error
 }
 
-type GetPing200JSONResponse struct {
+type Ping200JSONResponse struct {
 	Status string `json:"status"`
 }
 
-func (response GetPing200JSONResponse) VisitGetPingResponse(w http.ResponseWriter) error {
+func (response Ping200JSONResponse) VisitPingResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetWorkflowsRequestObject struct {
+}
+
+type GetWorkflowsResponseObject interface {
+	VisitGetWorkflowsResponse(w http.ResponseWriter) error
+}
+
+type GetWorkflows200JSONResponse struct {
+	// Workflows List of workflows
+	Workflows *[]struct {
+		// Devices List of devices
+		Devices *[]struct {
+			// Id Device ID
+			Id string `json:"id"`
+
+			// Ip Device IP
+			Ip string `json:"ip"`
+		} `json:"devices,omitempty"`
+		Id   string `json:"id"`
+		Name string `json:"name"`
+	} `json:"workflows,omitempty"`
+}
+
+func (response GetWorkflows200JSONResponse) VisitGetWorkflowsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateWorkflowRequestObject struct {
+	Body *CreateWorkflowJSONRequestBody
+}
+
+type CreateWorkflowResponseObject interface {
+	VisitCreateWorkflowResponse(w http.ResponseWriter) error
+}
+
+type CreateWorkflow201JSONResponse struct {
+	// Devices List of devices
+	Devices *[]struct {
+		// Id Device ID
+		Id string `json:"id"`
+
+		// Ip Device IP
+		Ip string `json:"ip"`
+	} `json:"devices,omitempty"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func (response CreateWorkflow201JSONResponse) VisitCreateWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateWorkflow400JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response CreateWorkflow400JSONResponse) VisitCreateWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteWorkflowRequestObject struct {
+	Id string `json:"id"`
+}
+
+type DeleteWorkflowResponseObject interface {
+	VisitDeleteWorkflowResponse(w http.ResponseWriter) error
+}
+
+type DeleteWorkflow204Response struct {
+}
+
+func (response DeleteWorkflow204Response) VisitDeleteWorkflowResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteWorkflow404JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response DeleteWorkflow404JSONResponse) VisitDeleteWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetWorkflowRequestObject struct {
+	Id string `json:"id"`
+}
+
+type GetWorkflowResponseObject interface {
+	VisitGetWorkflowResponse(w http.ResponseWriter) error
+}
+
+type GetWorkflow200JSONResponse struct {
+	// Devices List of devices
+	Devices *[]struct {
+		// Id Device ID
+		Id string `json:"id"`
+
+		// Ip Device IP
+		Ip string `json:"ip"`
+	} `json:"devices,omitempty"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func (response GetWorkflow200JSONResponse) VisitGetWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetWorkflow404JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response GetWorkflow404JSONResponse) VisitGetWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkflowRequestObject struct {
+	Id   string `json:"id"`
+	Body *UpdateWorkflowJSONRequestBody
+}
+
+type UpdateWorkflowResponseObject interface {
+	VisitUpdateWorkflowResponse(w http.ResponseWriter) error
+}
+
+type UpdateWorkflow200JSONResponse struct {
+	// Devices List of devices
+	Devices *[]struct {
+		// Id Device ID
+		Id string `json:"id"`
+
+		// Ip Device IP
+		Ip string `json:"ip"`
+	} `json:"devices,omitempty"`
+	Id   string `json:"id"`
+	Name string `json:"name"`
+}
+
+func (response UpdateWorkflow200JSONResponse) VisitUpdateWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkflow400JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response UpdateWorkflow400JSONResponse) VisitUpdateWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type UpdateWorkflow404JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response UpdateWorkflow404JSONResponse) VisitUpdateWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AssociateWorkflowDevicesRequestObject struct {
+	Id   string `json:"id"`
+	Body *AssociateWorkflowDevicesJSONRequestBody
+}
+
+type AssociateWorkflowDevicesResponseObject interface {
+	VisitAssociateWorkflowDevicesResponse(w http.ResponseWriter) error
+}
+
+type AssociateWorkflowDevices201JSONResponse struct {
+	// Devices List of devices
+	Devices *[]struct {
+		// Id Device ID
+		Id string `json:"id"`
+
+		// Ip Device IP
+		Ip string `json:"ip"`
+	} `json:"devices,omitempty"`
+}
+
+func (response AssociateWorkflowDevices201JSONResponse) VisitAssociateWorkflowDevicesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AssociateWorkflowDevices400JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response AssociateWorkflowDevices400JSONResponse) VisitAssociateWorkflowDevicesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type AssociateWorkflowDevices404JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response AssociateWorkflowDevices404JSONResponse) VisitAssociateWorkflowDevicesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
-
+	// Get all devices
+	// (GET /device)
+	GetDevices(ctx context.Context, request GetDevicesRequestObject) (GetDevicesResponseObject, error)
+	// Create a device
 	// (POST /device)
-	PostDevice(ctx context.Context, request PostDeviceRequestObject) (PostDeviceResponseObject, error)
-
+	CreateDevice(ctx context.Context, request CreateDeviceRequestObject) (CreateDeviceResponseObject, error)
+	// Delete device by ID
+	// (DELETE /device/{id})
+	DeleteDevice(ctx context.Context, request DeleteDeviceRequestObject) (DeleteDeviceResponseObject, error)
+	// Get device by ID
 	// (GET /device/{id})
 	GetDevice(ctx context.Context, request GetDeviceRequestObject) (GetDeviceResponseObject, error)
-
+	// Check Decision Maker's status
 	// (GET /ping)
-	GetPing(ctx context.Context, request GetPingRequestObject) (GetPingResponseObject, error)
+	Ping(ctx context.Context, request PingRequestObject) (PingResponseObject, error)
+	// Get all workflows
+	// (GET /workflow)
+	GetWorkflows(ctx context.Context, request GetWorkflowsRequestObject) (GetWorkflowsResponseObject, error)
+	// Create a workflow
+	// (POST /workflow)
+	CreateWorkflow(ctx context.Context, request CreateWorkflowRequestObject) (CreateWorkflowResponseObject, error)
+	// Delete workflow by ID
+	// (DELETE /workflow/{id})
+	DeleteWorkflow(ctx context.Context, request DeleteWorkflowRequestObject) (DeleteWorkflowResponseObject, error)
+	// Get workflow by ID
+	// (GET /workflow/{id})
+	GetWorkflow(ctx context.Context, request GetWorkflowRequestObject) (GetWorkflowResponseObject, error)
+	// Update workflow
+	// (PATCH /workflow/{id})
+	UpdateWorkflow(ctx context.Context, request UpdateWorkflowRequestObject) (UpdateWorkflowResponseObject, error)
+	// Associate devices to a workflow
+	// (PUT /workflow/{id}/devices)
+	AssociateWorkflowDevices(ctx context.Context, request AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -371,11 +988,35 @@ type strictHandler struct {
 	options     StrictHTTPServerOptions
 }
 
-// PostDevice operation middleware
-func (sh *strictHandler) PostDevice(w http.ResponseWriter, r *http.Request) {
-	var request PostDeviceRequestObject
+// GetDevices operation middleware
+func (sh *strictHandler) GetDevices(w http.ResponseWriter, r *http.Request) {
+	var request GetDevicesRequestObject
 
-	var body PostDeviceJSONRequestBody
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetDevices(ctx, request.(GetDevicesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetDevices")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetDevicesResponseObject); ok {
+		if err := validResponse.VisitGetDevicesResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateDevice operation middleware
+func (sh *strictHandler) CreateDevice(w http.ResponseWriter, r *http.Request) {
+	var request CreateDeviceRequestObject
+
+	var body CreateDeviceJSONRequestBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
 		return
@@ -383,18 +1024,44 @@ func (sh *strictHandler) PostDevice(w http.ResponseWriter, r *http.Request) {
 	request.Body = &body
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.PostDevice(ctx, request.(PostDeviceRequestObject))
+		return sh.ssi.CreateDevice(ctx, request.(CreateDeviceRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "PostDevice")
+		handler = middleware(handler, "CreateDevice")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(PostDeviceResponseObject); ok {
-		if err := validResponse.VisitPostDeviceResponse(w); err != nil {
+	} else if validResponse, ok := response.(CreateDeviceResponseObject); ok {
+		if err := validResponse.VisitCreateDeviceResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteDevice operation middleware
+func (sh *strictHandler) DeleteDevice(w http.ResponseWriter, r *http.Request, id string) {
+	var request DeleteDeviceRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteDevice(ctx, request.(DeleteDeviceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteDevice")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteDeviceResponseObject); ok {
+		if err := validResponse.VisitDeleteDeviceResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -428,23 +1095,196 @@ func (sh *strictHandler) GetDevice(w http.ResponseWriter, r *http.Request, id st
 	}
 }
 
-// GetPing operation middleware
-func (sh *strictHandler) GetPing(w http.ResponseWriter, r *http.Request) {
-	var request GetPingRequestObject
+// Ping operation middleware
+func (sh *strictHandler) Ping(w http.ResponseWriter, r *http.Request) {
+	var request PingRequestObject
 
 	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.GetPing(ctx, request.(GetPingRequestObject))
+		return sh.ssi.Ping(ctx, request.(PingRequestObject))
 	}
 	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "GetPing")
+		handler = middleware(handler, "Ping")
 	}
 
 	response, err := handler(r.Context(), w, r, request)
 
 	if err != nil {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(GetPingResponseObject); ok {
-		if err := validResponse.VisitGetPingResponse(w); err != nil {
+	} else if validResponse, ok := response.(PingResponseObject); ok {
+		if err := validResponse.VisitPingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetWorkflows operation middleware
+func (sh *strictHandler) GetWorkflows(w http.ResponseWriter, r *http.Request) {
+	var request GetWorkflowsRequestObject
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetWorkflows(ctx, request.(GetWorkflowsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetWorkflows")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetWorkflowsResponseObject); ok {
+		if err := validResponse.VisitGetWorkflowsResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateWorkflow operation middleware
+func (sh *strictHandler) CreateWorkflow(w http.ResponseWriter, r *http.Request) {
+	var request CreateWorkflowRequestObject
+
+	var body CreateWorkflowJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateWorkflow(ctx, request.(CreateWorkflowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateWorkflow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateWorkflowResponseObject); ok {
+		if err := validResponse.VisitCreateWorkflowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteWorkflow operation middleware
+func (sh *strictHandler) DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string) {
+	var request DeleteWorkflowRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteWorkflow(ctx, request.(DeleteWorkflowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteWorkflow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteWorkflowResponseObject); ok {
+		if err := validResponse.VisitDeleteWorkflowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetWorkflow operation middleware
+func (sh *strictHandler) GetWorkflow(w http.ResponseWriter, r *http.Request, id string) {
+	var request GetWorkflowRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.GetWorkflow(ctx, request.(GetWorkflowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetWorkflow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(GetWorkflowResponseObject); ok {
+		if err := validResponse.VisitGetWorkflowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateWorkflow operation middleware
+func (sh *strictHandler) UpdateWorkflow(w http.ResponseWriter, r *http.Request, id string) {
+	var request UpdateWorkflowRequestObject
+
+	request.Id = id
+
+	var body UpdateWorkflowJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.UpdateWorkflow(ctx, request.(UpdateWorkflowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateWorkflow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(UpdateWorkflowResponseObject); ok {
+		if err := validResponse.VisitUpdateWorkflowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AssociateWorkflowDevices operation middleware
+func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http.Request, id string) {
+	var request AssociateWorkflowDevicesRequestObject
+
+	request.Id = id
+
+	var body AssociateWorkflowDevicesJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.AssociateWorkflowDevices(ctx, request.(AssociateWorkflowDevicesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AssociateWorkflowDevices")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(AssociateWorkflowDevicesResponseObject); ok {
+		if err := validResponse.VisitAssociateWorkflowDevicesResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -455,17 +1295,25 @@ func (sh *strictHandler) GetPing(w http.ResponseWriter, r *http.Request) {
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"msoYD3GPCIqzu+z/AAAA//9DEwwFYBsAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

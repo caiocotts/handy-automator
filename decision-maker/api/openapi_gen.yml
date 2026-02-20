@@ -18,6 +18,19 @@ paths:
               schema:
                 $ref: '#/components/schemas/Pong'
   /device:
+    get:
+      summary: Get all devices
+      operationId: getDevices
+      responses:
+        '200':
+          description: Device records successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  devices:
+                    $ref: '#/components/schemas/DeviceList'
     post:
       summary: Create a device
       operationId: createDevice
@@ -63,7 +76,7 @@ paths:
         - name: id
           in: path
           description: Device ID
-          required: false
+          required: true
           schema:
             type: string
       responses:
@@ -72,6 +85,19 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'
   /workflow:
+    get:
+      summary: Get all workflows
+      operationId: getWorkflows
+      responses:
+        '200':
+          description: Workflow records successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  workflows:
+                    $ref: '#/components/schemas/WorkflowList'
     post:
       summary: Create a workflow
       operationId: createWorkflow
@@ -193,36 +219,23 @@ components:
           example: ok
       required:
         - status
-    DevicePostRequest:
-      type: object
-      properties:
-        ip:
-          type: string
-          example: 192.168.1.18
-      required:
-        - ip
     Device:
       type: object
       properties:
         id:
           type: string
+          description: Device ID
           example: pXkHij_kJjXh
         ip:
           type: string
+          description: Device IP
           example: 192.168.1.18
       required:
         - id
         - ip
-    WorkflowPostRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          example: Turn on bedroom lights
-      required:
-        - name
     DeviceList:
       type: array
+      description: List of devices
       items:
         $ref: '#/components/schemas/Device'
       example:
@@ -230,6 +243,15 @@ components:
           ip: 192.168.1.18
         - id: xzoYPLkuPuT0
           ip: 192.168.1.42
+    DevicePostRequest:
+      type: object
+      properties:
+        ip:
+          type: string
+          description: Device IP
+          example: 192.168.1.18
+      required:
+        - ip
     Workflow:
       type: object
       properties:
@@ -244,12 +266,31 @@ components:
       required:
         - id
         - name
-        - devices
+    WorkflowList:
+      type: array
+      description: List of workflows
+      items:
+        $ref: '#/components/schemas/Workflow'
+      example:
+        - id: pXkHij_kJjXh
+          name: Turn on bedroom lights
+        - id: XXdBr6WRNvmB
+          name: Turn on living room lights
+    WorkflowPostRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          description: Workflow name
+          example: Turn on bedroom lights
+      required:
+        - name
     WorkflowPatchRequest:
       type: object
       properties:
         name:
           type: string
+          description: Workflow name
           example: Turn on bedroom lights
   responses:
     BadRequest:
