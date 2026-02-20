@@ -12,8 +12,8 @@ type WorkflowRepository struct {
 	database *sql.DB
 }
 
-func NewWorkflowRepository(db *sql.DB) *DeviceRepository {
-	return &DeviceRepository{
+func NewWorkflowRepository(db *sql.DB) *WorkflowRepository {
+	return &WorkflowRepository{
 		database: db,
 	}
 }
