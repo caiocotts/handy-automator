@@ -8,6 +8,7 @@ import (
 	"context"
 	"decisionMaker/persistence"
 	"decisionMaker/service/device"
+	"decisionMaker/service/workflow"
 	_ "embed"
 	"errors"
 	"fmt"
@@ -22,12 +23,14 @@ var Spec []byte
 var Docs []byte
 
 type Server struct {
-	deviceService *device.Service
+	deviceService   *device.Service
+	workflowService *workflow.Service
 }
 
-func NewServer(ds *device.Service) Server {
+func NewServer(ds *device.Service, ws *workflow.Service) Server {
 	return Server{
-		deviceService: ds,
+		deviceService:   ds,
+		workflowService: ws,
 	}
 }
 
@@ -104,8 +107,23 @@ func (s Server) DeleteDevice(ctx context.Context, request DeleteDeviceRequestObj
 }
 
 func (s Server) CreateWorkflow(ctx context.Context, request CreateWorkflowRequestObject) (CreateWorkflowResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+	name := request.Body.Name
+	if name == "" {
+		return CreateWorkflow400JSONResponse{
+			Message: "name field must not be empty",
+		}, nil
+	}
+	w, err := s.workflowService.Create(ctx, name)
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+
+	return CreateWorkflow201JSONResponse{
+		Devices: nil,
+		Id:      w.Id,
+		Name:    w.Name,
+	}, nil
 }
 
 func (s Server) DeleteWorkflow(ctx context.Context, request DeleteWorkflowRequestObject) (DeleteWorkflowResponseObject, error) {
