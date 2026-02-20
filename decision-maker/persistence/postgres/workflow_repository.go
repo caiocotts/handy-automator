@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 	"decisionMaker/model"
+	"decisionMaker/persistence"
+	"errors"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -35,8 +37,15 @@ func (r WorkflowRepository) Create(ctx context.Context, name string) (model.Work
 }
 
 func (r WorkflowRepository) Get(ctx context.Context, id string) (model.Workflow, error) {
-	//TODO implement me
-	panic("implement me")
+	w := model.Workflow{}
+	err := r.database.QueryRowContext(ctx, `select id, name from "workflow" where id = $1`, id).Scan(&w.Id, &w.Name)
+	if errors.Is(err, sql.ErrNoRows) {
+		return model.Workflow{}, persistence.ErrNotFound
+	}
+	if err != nil {
+		return model.Workflow{}, err
+	}
+	return w, nil
 }
 
 func (r WorkflowRepository) GetAll(ctx context.Context) ([]model.Workflow, error) {

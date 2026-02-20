@@ -60,7 +60,7 @@ func (s Server) GetDevices(ctx context.Context, _ GetDevicesRequestObject) (GetD
 	devices, err := s.deviceService.GetAll(ctx)
 	if err != nil {
 		log.Print(err)
-		return nil, err
+		return nil, err //TODO implement 500 error message with ref code
 	}
 	deviceStructSlice := make([]struct {
 		Id string `json:"id"`
@@ -132,8 +132,20 @@ func (s Server) DeleteWorkflow(ctx context.Context, request DeleteWorkflowReques
 }
 
 func (s Server) GetWorkflow(ctx context.Context, request GetWorkflowRequestObject) (GetWorkflowResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+	w, err := s.workflowService.GetById(ctx, request.Id)
+	if errors.Is(err, persistence.ErrNotFound) {
+		return GetWorkflow404JSONResponse{
+			Message: err.Error(),
+		}, err
+	}
+	if err != nil {
+		log.Print(err)
+		return nil, err //TODO implement 500 error message with ref code
+	}
+	return GetWorkflow200JSONResponse{
+		Id:   w.Id,
+		Name: w.Name,
+	}, nil
 }
 
 func (s Server) GetWorkflows(ctx context.Context, request GetWorkflowsRequestObject) (GetWorkflowsResponseObject, error) {
