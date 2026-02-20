@@ -1,3 +1,17 @@
+get:
+  summary: Get all devices
+  operationId: getDevices
+  responses:
+    '200':
+      description: Device records successfully retrieved
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              devices:
+                $ref: ../components/schemas/DeviceList.yml
+
 post:
   summary: Create a device
   operationId: createDevice
