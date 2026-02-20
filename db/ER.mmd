@@ -17,6 +17,7 @@ erDiagram
     workflow {
         varchar(12) id PK ""
         text name ""
+        varchar(12) user_id FK
     }
 
     user {
@@ -26,9 +27,10 @@ erDiagram
 
     gesture {
         varchar(12) id PK ""
+        varchar(12) user_id FK ""
     }
 
-    gesture |o--o{ user: "  "
+    gesture }o--o| user: "  "
     user |o--o{ workflow: "  "
     device }o--o| workflow_device: "  "
     workflow_device |o--o{ workflow: "  "
