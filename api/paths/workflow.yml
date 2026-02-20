@@ -1,3 +1,17 @@
+get:
+  summary: Get all workflows
+  operationId: getWorkflows
+  responses:
+    '200':
+      description: Workflow records successfully retrieved
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              workflows:
+                $ref: ../components/schemas/WorkflowList.yml
+
 post:
   summary: Create a workflow
   operationId: createWorkflow
