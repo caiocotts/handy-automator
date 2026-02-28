@@ -55,7 +55,7 @@ def main():
             # 2. Check for Pose Landmarks
             if pr.latest_pose_result:
                 pose_landmarks = pr.latest_pose_result[0]
-                
+                # Coordinates 
                 nose_x, nose_y = pr.get_nose_coords(pr.latest_pose_result, frame_w, frame_h)
                 rw_x, rw_y = pr.get_wrist_coords(pr.latest_pose_result, frame_w, frame_h, "right")
                 lw_x, lw_y = pr.get_wrist_coords(pr.latest_pose_result, frame_w, frame_h, "left")

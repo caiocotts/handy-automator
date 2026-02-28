@@ -2,9 +2,9 @@ import cv2
 from deepface import DeepFace
 import time
 from scipy.spatial.distance import cosine
-import os
 import mediapipe as mp
 import math
+import face_embeddings as fe
 
 
  # Constants
@@ -19,27 +19,18 @@ AUTH_LOCK_TIME = 7.0      # Lock duration after success
 
 authenticated = False
 last_auth_time = 0        # ADDED: Initialize this to prevent a crash on startup
-DB_PATH = os.path.join(os.path.abspath(os.getcwd()), "database") 
-AUTH_DIR = os.path.join(DB_PATH, "auth_users")
+
 
 known_embeddings = {}  # name -> embedding
 tracked_faces = []
 
-#TODO move to seperate file to run as a script
-for file in os.listdir(AUTH_DIR):
-    if file.lower().endswith((".jpg", ".png", ".jpeg")):
-        path = os.path.join(AUTH_DIR, file)
-        name = os.path.splitext(file)[0]
+#TODO remove when embeddings are on db and replace with this:
+#known_embeddings = face_embeddings.get_faces()
 
-        embedding = DeepFace.represent(
-            img_path=path,
-            model_name="ArcFace",
-            detector_backend="retinaface",
-            enforce_detection=True
-        )[0]["embedding"]
 
-        known_embeddings[name] = embedding
-        print(f"Loaded embedding for {name}")
+
+known_embeddings = fe.get_faces_old()
+
 
 
 def detecting_bounding_box(frame):
@@ -62,7 +53,6 @@ def detecting_bounding_box(frame):
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
         detected_name = "Unknown"
 
-        # --- EVERYTHING BELOW IS NOW PROPERLY INDENTED ---
         cx, cy = x + w/2, y + h/2
         for t_box, t_name in tracked_faces:
             tx, ty, tw, th = t_box
@@ -81,7 +71,6 @@ def detecting_bounding_box(frame):
                 
         # Store the result for this frame
         current_tracked.append(((x, y, w, h), detected_name))
-        # --- END OF INDENTED LOOP BLOCK ---
 
     # Reset the timer if we just checked
     if current_time - last_check > CHECK_INTERVAL:
