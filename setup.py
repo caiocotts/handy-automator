@@ -9,12 +9,12 @@ MIGRATIONS_PATH = os.path.join('.', 'db', 'migrations')
 API_SPEC_PATH = os.path.join('.', 'api')
 
 MAKEFILE_CONTENTS = \
-f"""GOOSE=go tool goose"
+f"""GOOSE=go tool goose
 GOOSE_OPTS=-dir {MIGRATIONS_PATH} postgres
 
 dev: ##@Development Start handy-automator in development mode
 	@cd {GO_CODE_PATH} &&\\
- 	go run .
+ 	go tool reflex -c reflex.conf
 .PHONY: dev
 
 gen-api: ##@Development Generate API code from the OpenAPI spec
