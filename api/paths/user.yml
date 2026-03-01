@@ -1,0 +1,18 @@
+post:
+  summary: Register new user
+  operationId: createUser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/UserPostRequest.yml
+  responses:
+    201:
+      description: User registered successfully
+      content:
+        application/json:
+          schema:
+            $ref: ../components/schemas/User.yml
+    400:
+      $ref: ../components/responses/BadRequest.yml

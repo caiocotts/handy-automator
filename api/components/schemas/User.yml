@@ -1,0 +1,13 @@
+type: object
+properties:
+  id:
+    type: string
+    description: User ID
+    example: gZ84IFg_GsRR
+  username:
+    type: string
+    description: User name
+    example: caiocotts
+required:
+  - id
+  - username
