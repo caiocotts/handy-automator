@@ -9,7 +9,7 @@ MIGRATIONS_PATH = os.path.join('.', 'db', 'migrations')
 API_SPEC_PATH = os.path.join('.', 'api')
 
 MAKEFILE_CONTENTS = \
-f"""GOOSE=go run "github.com/pressly/goose/v3/cmd/goose@latest"
+f"""GOOSE=go tool goose"
 GOOSE_OPTS=-dir {MIGRATIONS_PATH} postgres
 
 dev: ##@Development Start handy-automator in development mode
