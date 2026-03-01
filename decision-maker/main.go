@@ -4,6 +4,7 @@ import (
 	"decisionMaker/api"
 	"decisionMaker/persistence/postgres"
 	"decisionMaker/service/device"
+	"decisionMaker/service/user"
 	"decisionMaker/service/workflow"
 	"fmt"
 	"log"
@@ -33,12 +34,14 @@ func main() {
 
 	// dep injections
 	deviceRepository := postgres.NewDeviceRepository(db)
+	userRepository := postgres.NewUserRepository(db)
 	workflowRepository := postgres.NewWorkflowRepository(db)
 
 	deviceService := device.NewService(deviceRepository)
+	userService := user.NewService(userRepository)
 	workflowService := workflow.NewService(workflowRepository)
 
-	server := api.NewServer(deviceService, workflowService)
+	server := api.NewServer(deviceService, userService, workflowService)
 
 	router := chi.NewMux()
 	router.Use(middleware.Logger)

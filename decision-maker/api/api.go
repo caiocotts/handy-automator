@@ -8,6 +8,7 @@ import (
 	"context"
 	"decisionMaker/persistence"
 	"decisionMaker/service/device"
+	"decisionMaker/service/user"
 	"decisionMaker/service/workflow"
 	_ "embed"
 	"errors"
@@ -24,18 +25,45 @@ var Docs []byte
 
 type Server struct {
 	deviceService   *device.Service
+	userService     *user.Service
 	workflowService *workflow.Service
 }
 
-func NewServer(ds *device.Service, ws *workflow.Service) Server {
+func NewServer(ds *device.Service, us *user.Service, ws *workflow.Service) Server {
 	return Server{
 		deviceService:   ds,
+		userService:     us,
 		workflowService: ws,
 	}
 }
 
 func (s Server) Ping(_ context.Context, _ PingRequestObject) (PingResponseObject, error) {
 	return Ping200JSONResponse{Status: "ok"}, nil
+}
+
+func (s Server) CreateUser(ctx context.Context, request CreateUserRequestObject) (CreateUserResponseObject, error) {
+	u, err := s.userService.Register(ctx, request.Body.Username, request.Body.Password)
+	if errors.Is(err, user.ErrPasswordTooLong) || errors.Is(err, persistence.ErrUsernameAlreadyTaken) {
+		return CreateUser400JSONResponse{
+			Message: err.Error(),
+		}, nil
+	}
+	if err != nil {
+		log.Print(err)
+		return nil, err
+	}
+	return CreateUser201JSONResponse{
+		Id:       u.Id,
+		Username: u.Username,
+	}, nil
+}
+
+func (s Server) DeleteUser(ctx context.Context, request DeleteUserRequestObject) (DeleteUserResponseObject, error) {
+	err := s.userService.Delete(ctx, request.Id)
+	if errors.Is(err, persistence.ErrNotFound) {
+		return DeleteUser404JSONResponse{Message: err.Error()}, nil
+	}
+	return DeleteUser204Response{}, nil
 }
 
 func (s Server) GetDevice(ctx context.Context, request GetDeviceRequestObject) (GetDeviceResponseObject, error) {

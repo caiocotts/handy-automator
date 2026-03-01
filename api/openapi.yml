@@ -8,6 +8,10 @@ servers:
 paths:
   /ping:
     $ref: paths/ping.yml
+  /user:
+    $ref: ./paths/user.yml
+  /user/{id}:
+    $ref: ./paths/user_{id}.yml
   /device:
     $ref: paths/device.yml
   /device/{id}:

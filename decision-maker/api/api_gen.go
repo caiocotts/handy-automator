@@ -27,6 +27,15 @@ type CreateDeviceJSONBody struct {
 	Ip string `json:"ip"`
 }
 
+// CreateUserJSONBody defines parameters for CreateUser.
+type CreateUserJSONBody struct {
+	// Password The user's password
+	Password string `json:"password"`
+
+	// Username User name
+	Username string `json:"username"`
+}
+
 // CreateWorkflowJSONBody defines parameters for CreateWorkflow.
 type CreateWorkflowJSONBody struct {
 	// Name Workflow name
@@ -54,6 +63,9 @@ type AssociateWorkflowDevicesJSONBody struct {
 // CreateDeviceJSONRequestBody defines body for CreateDevice for application/json ContentType.
 type CreateDeviceJSONRequestBody CreateDeviceJSONBody
 
+// CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
+type CreateUserJSONRequestBody CreateUserJSONBody
+
 // CreateWorkflowJSONRequestBody defines body for CreateWorkflow for application/json ContentType.
 type CreateWorkflowJSONRequestBody CreateWorkflowJSONBody
 
@@ -80,6 +92,12 @@ type ServerInterface interface {
 	// Check Decision Maker's status
 	// (GET /ping)
 	Ping(w http.ResponseWriter, r *http.Request)
+	// Register new user
+	// (POST /user)
+	CreateUser(w http.ResponseWriter, r *http.Request)
+	// Delete user by ID
+	// (DELETE /user/{id})
+	DeleteUser(w http.ResponseWriter, r *http.Request, id string)
 	// Get all workflows
 	// (GET /workflow)
 	GetWorkflows(w http.ResponseWriter, r *http.Request)
@@ -131,6 +149,18 @@ func (_ Unimplemented) GetDevice(w http.ResponseWriter, r *http.Request, id stri
 // Check Decision Maker's status
 // (GET /ping)
 func (_ Unimplemented) Ping(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Register new user
+// (POST /user)
+func (_ Unimplemented) CreateUser(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Delete user by ID
+// (DELETE /user/{id})
+func (_ Unimplemented) DeleteUser(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -262,6 +292,45 @@ func (siw *ServerInterfaceWrapper) Ping(w http.ResponseWriter, r *http.Request) 
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.Ping(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// CreateUser operation middleware
+func (siw *ServerInterfaceWrapper) CreateUser(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.CreateUser(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// DeleteUser operation middleware
+func (siw *ServerInterfaceWrapper) DeleteUser(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.DeleteUser(w, r, id)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -528,6 +597,12 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/ping", wrapper.Ping)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/user", wrapper.CreateUser)
+	})
+	r.Group(func(r chi.Router) {
+		r.Delete(options.BaseURL+"/user/{id}", wrapper.DeleteUser)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/workflow", wrapper.GetWorkflows)
 	})
 	r.Group(func(r chi.Router) {
@@ -683,6 +758,67 @@ type Ping200JSONResponse struct {
 func (response Ping200JSONResponse) VisitPingResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateUserRequestObject struct {
+	Body *CreateUserJSONRequestBody
+}
+
+type CreateUserResponseObject interface {
+	VisitCreateUserResponse(w http.ResponseWriter) error
+}
+
+type CreateUser201JSONResponse struct {
+	// Id User ID
+	Id string `json:"id"`
+
+	// Username User name
+	Username string `json:"username"`
+}
+
+func (response CreateUser201JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateUser400JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response CreateUser400JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUserRequestObject struct {
+	Id string `json:"id"`
+}
+
+type DeleteUserResponseObject interface {
+	VisitDeleteUserResponse(w http.ResponseWriter) error
+}
+
+type DeleteUser204Response struct {
+}
+
+func (response DeleteUser204Response) VisitDeleteUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type DeleteUser404JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response DeleteUser404JSONResponse) VisitDeleteUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -939,6 +1075,12 @@ type StrictServerInterface interface {
 	// Check Decision Maker's status
 	// (GET /ping)
 	Ping(ctx context.Context, request PingRequestObject) (PingResponseObject, error)
+	// Register new user
+	// (POST /user)
+	CreateUser(ctx context.Context, request CreateUserRequestObject) (CreateUserResponseObject, error)
+	// Delete user by ID
+	// (DELETE /user/{id})
+	DeleteUser(ctx context.Context, request DeleteUserRequestObject) (DeleteUserResponseObject, error)
 	// Get all workflows
 	// (GET /workflow)
 	GetWorkflows(ctx context.Context, request GetWorkflowsRequestObject) (GetWorkflowsResponseObject, error)
@@ -1112,6 +1254,63 @@ func (sh *strictHandler) Ping(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(PingResponseObject); ok {
 		if err := validResponse.VisitPingResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateUser operation middleware
+func (sh *strictHandler) CreateUser(w http.ResponseWriter, r *http.Request) {
+	var request CreateUserRequestObject
+
+	var body CreateUserJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.CreateUser(ctx, request.(CreateUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(CreateUserResponseObject); ok {
+		if err := validResponse.VisitCreateUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeleteUser operation middleware
+func (sh *strictHandler) DeleteUser(w http.ResponseWriter, r *http.Request, id string) {
+	var request DeleteUserRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.DeleteUser(ctx, request.(DeleteUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeleteUser")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(DeleteUserResponseObject); ok {
+		if err := validResponse.VisitDeleteUserResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -1295,25 +1494,27 @@ func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"H4sIAAAAAAAC/9RYW2/bNhT+KwQ3IC+CLCde0fmtXrAtQxcYRYdkKIKAkY5txhLJkpRTL9B/H0hKsmTJ",
-	"l7iWk7450pF0vsu5MM845IngDJhWePiMJSjBmQL7x+rWfXn9fkSiT/A1BaVdCNPA7E8iRExDoilnvUfF",
-	"mbmmwhkkxPwSkguQmro3J6AUmYL5Cd9IImLAQ3zW//Xc7w9+8S/88wu/HwRniCrEuEYELUhMI0QF9rBe",
-	"ChOttKRsirPMwxK+plRChIdfyjfflYH84RFCjTMTGYEKJRUmRzzEIxKhAkvmtcO95vp3nrLo2GBTRh5i",
-	"QJqjCWURki4NML9CLqOj4rzmGjkQ5p5Lc13g/Or9JSxoCE0Q1DJQf6+LRVeX2KsgE7fzP+nj/fyvx9tZ",
-	"E4aHqdj8pnHtTdYP7977fb//fich1HBGRQsh3macH6mzcT0bcxXxCYpsjKrm9MUxsQ7SYKqnm3l55Lf/",
-	"+L/jj/N0nH4OmpGDc5zdeZhqSCzNP0uY4CH+qbdKuZen3NusVlZiJlKS5VbIY650pYDXVO5Im71lGXM2",
-	"baalNNGpqhcQn+/8bP7Ynp++4XI+iflT8/OFDw7Vx7rMOD+qQ9hVKYwka13jcyoZ4gw9QCQ5T1BMpzOt",
-	"9qsN+7YXcrG9Pp7yqH0qxGHZBKCsltvbaCTf3Xy6XiSj5lMxXVA2RbUnv6N6SsX3q58ifEx0ONtYQoVo",
-	"dcqKZ5G97R0m6UuU21rmHeZYtd0Gx5kwyia8rdWEVFHO0N9kDhJ9GF+Zb1Btk2i9uQCp3LOBH/h9QwoX",
-	"wIigeIgv/MA3PVcQPbO4e1E53aZgeTGs2Cl+Zdz3B+jLsufXVqHzIPiODeA4DSTbY9TnzdotEQqpNAxB",
-	"qUkax0skQUsKC8jXgDRJiFw61IjEcTnuMg8Lrlro+U0C0ZDPHCc1KD3i0fJF3BxEQdXPWd1oWqaQNfTq",
-	"d5/TTgHq/IeWvsjwO3B2avtqCaO3a/2uq+jEQSSX0d7N/d57plHmfBiDhqawl/Z6KawgkiSgQSrbzjcv",
-	"fdRcMNW1atV21NS18So8rzeMu4Zug40bSBunDlHO6eBATssdv86oYyXnEz0sDebM29E5Xpu+4M3ZvtJ2",
-	"OhDJNK+6Qsb3gro1slWrsbl5WuLsWttKW22mUYVSgYg5D6aMFSO1UuMzCOeo/tCZQvmea5E/VbbYTU69",
-	"qextR5xyq3Xw8FVs/0lXbisHzbpVrjumXbkjnmzetW1wrz/xVrvyTileZeo9rfKrVMGek68i8tbmXQI9",
-	"5fTbyu4J5l/B5e4J+HZoDN5kKXQ/CZtaCXNYbar1j4jIK/v+tM20embP8nb6A1gmtTodsXt2YDznpW0d",
-	"uFc5AIu0pXl8UIqHtOLI1TH8RzFmJyf+DuZ+d3m2nghIoWyENF/1p6rJ37S5S2cW/x4xMGrrhgkHuSgM",
-	"msoYD3GPCIqzu+z/AAAA//9DEwwFYBsAAA==",
+	"H4sIAAAAAAAC/9RY72/bNhD9VwhuQL4Itpx4RedvzYJ2GbrACFIkWxEEjHS2GUskS1J2vUD/+0DqtyXb",
+	"SmrZ6TdbOlF37z0+3ukZezwUnAHTCo+esQQlOFNg/xS3HvLrD+fEv4ZvESidhDANzP4kQgTUI5py1n9S",
+	"nJlryptBSMwvIbkAqWmycghKkSmYn/CdhCIAPMIng99Pe4Phb72z3ulZb+C6J4gqxLhGBC1IQH1EBXaw",
+	"XgkTrbSkbIrj2MESvkVUgo9HX/OV7/NA/vgEnsaxifRBeZIKkyMe4XPio6yW2Gku94rrjzxi/r6LjRh5",
+	"DABpjiaU+UgmaYD55XHp77XOK65RUoS5l6S5TnB69eECFtSDehHUIlBdN4lFlxfYKVUm7uZ/0qeH+V9P",
+	"d7N6GQ6mYvNK48pKVg/v3vcGvcH7nYBQgxkVDYA4m+v8TBMZV7MxVxGfIN/GqHJOXxMk1os0NVXTjZ00",
+	"8vt//J/x53k0jm7ceuTwFMf3DqYaQgvzrxImeIR/6Rcp99OU+5vZivOaiZRktbXkMVe6tIHXWO6Im9a0",
+	"jDmb1tNSmuhIVTcQn+98bfpYy1d/USDb6d5Erqt++u/74eXH6cMndX3dpPpIgWQkhA2r2Vvl9TxCuce1",
+	"Vu2Eny//gmK3KkEQpZbGiGr53swAmdedKJQHVfZ/enFwenZYIPKVnSL7lnDccjmfBHxZxyHzgNfuTesw",
+	"xvX8qnx3uWQGUfHETSQZ4gw9gi85D1FAp7O28niJNDIstnvjMo1q445JLZsKyJ3y7s4/l+9ur68W4Xn9",
+	"qYAuKJuiypM/4Jw54+28MwsfE+3NNm6aZl1nz9a1/QJKX8Lc1o3dYY5l2W1QnAmjbMKbjhmPKsoZ+pvM",
+	"QaIP40vzDqptEo03FyBV8qzbc3sDAwoXwIigeITPem7PtU6gZ7buvp93NlOwuBhUbAd3adT3CfRFft5X",
+	"2uBT1/2B7m8/BhK3aPPSgzppIBVSkeeBUpMoCFZIgpYUFpC2gFEYErlKqkYkCPJWJ3aw4KoBnj8kEA1p",
+	"v5FQDUqfc3/1ImxeBUFZz3FVaFpGENf4GnSf004Cqvh7Fj7f4DtM5NT01ryM/q7Rq8piQg4iKY32bqr3",
+	"/jP140SHAWioE3thr+fECiJJCBqksna+ueGnzJ71umTw9qipcuOUcF43jPsab8ON3WcTpklFKabDV2Ka",
+	"z3dVRBNUUjzR48rUHDs7nOPY8LlvTvYl2+mAJGNeVYaM7gVNRohGrsbm5mGBsyNNI2yVM40qFAlEmI9k",
+	"xFh2pJb2+Ay8Oao+dKJQOuPYyqNsgtni4HbKOZh/r48Zx3dvW38DG3b4kDClSoOEqow7cu3r9G2IwdJO",
+	"VAWLLV07JXOr6RTD6oEcO0XyKH5tsCt7wbI0123y7tvSJLPHvq8YkF4/nLTv/fL+/VXdX5Hrjv4vn5oO",
+	"5iBNM83xXaSYHndScZQ+cFnkV9oFLV2lRPJWZ8kLPaS7bEX3AA6TYbm7J3w7MLpvcit03xvWuRJEe7M6",
+	"W1+ET46s+8OaafkrVpza6U8gmcjytEf37EB4iZa2OXC/9ElIRA3m8UEp7tGSIosPUz+LMDv5BtbBud9d",
+	"no0zMsmY9ZHmhT91M2x0IO5cmdkHQ1NGpd0w4SAXmUAjGeAR7hNBcXwf/x8AAP//GhSlEG4gAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

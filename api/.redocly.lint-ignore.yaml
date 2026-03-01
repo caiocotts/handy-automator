@@ -8,8 +8,14 @@ paths/ping.yml:
     - '#/get'
   operation-4xx-response:
     - '#/get/responses'
+paths/user.yml:
+  security-defined:
+    - '#/post'
 
 #TODO implement security for all of the following endpoints
+paths/user_{id}.yml:
+  security-defined:
+    - '#/delete'
 paths/device.yml:
   security-defined:
     - '#/post'

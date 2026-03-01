@@ -17,6 +17,41 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Pong'
+  /user:
+    post:
+      summary: Register new user
+      operationId: createUser
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPostRequest'
+      responses:
+        '201':
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+  /user/{id}:
+    delete:
+      summary: Delete user by ID
+      operationId: deleteUser
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: User record successfully deleted
+        '404':
+          $ref: '#/components/responses/NotFound'
   /device:
     get:
       summary: Get all devices
@@ -219,6 +254,34 @@ components:
           example: ok
       required:
         - status
+    UserPostRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          description: User name
+          example: caiocotts
+        password:
+          type: string
+          description: The user's password
+          example: password123
+      required:
+        - username
+        - password
+    User:
+      type: object
+      properties:
+        id:
+          type: string
+          description: User ID
+          example: gZ84IFg_GsRR
+        username:
+          type: string
+          description: User name
+          example: caiocotts
+      required:
+        - id
+        - username
     Device:
       type: object
       properties:
