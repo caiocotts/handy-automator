@@ -1,9 +1,9 @@
-Makefile
 .env
 .idea
 .jpg
 .png
 .vscode
+tmp
 __pycache__
 node_modules
 .expo

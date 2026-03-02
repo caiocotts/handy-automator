@@ -8,3 +8,20 @@ services:
       - "5432:5432"
     volumes:
       - ./scripts/check-db-connection.sh:/check-db-connection.sh
+  development:
+    build:
+      context: docker/dev
+    environment:
+      GOCACHE: /go-cache
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./decision-maker:/workspace
+      - ./tmp/.go/pkg:/go/pkg
+      - ./tmp/.go-cache:/go-cache
+      - ./api:/api
+      - ./db:/db
+      - ./.env:/.env
+    working_dir: /workspace
+    env_file:
+      - .env
