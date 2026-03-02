@@ -1,6 +1,6 @@
-//go:generate docker run --rm -t -v ../../api:/spec -v .:/go redocly/cli build-docs openapi.yml -o /go/docs_gen.html
-//go:generate docker run --rm -t -v ../../api:/spec -v .:/go redocly/cli bundle openapi.yml -o /go/openapi_gen.yml
-//go:generate go tool oapi-codegen -config "api_config.yml" "../../api/openapi.yml"
+//go:generate redocly build-docs /api/openapi.yml -o /workspace/api/docs_gen.html
+//go:generate redocly bundle /api/openapi.yml -o /workspace/api/openapi_gen.yml
+//go:generate oapi-codegen -config "/workspace/api/api_config.yml" "/api/openapi.yml"
 
 package api
 
