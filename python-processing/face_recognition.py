@@ -18,7 +18,7 @@ THRESHOLD = 0.6           # Cosine similarity threshold
 AUTH_LOCK_TIME = 7.0      # Lock duration after success
 
 authenticated = False
-last_auth_time = 0        # ADDED: Initialize this to prevent a crash on startup
+last_auth_time = 0     
 
 
 known_embeddings = {}  # name -> embedding
@@ -27,13 +27,23 @@ tracked_faces = []
 #TODO remove when embeddings are on db and replace with this:
 #known_embeddings = face_embeddings.get_faces()
 
-
-
 known_embeddings = fe.get_faces_old()
 
 
 
 def detecting_bounding_box(frame):
+    """
+    Detects faces within the given video frame, draws bounding boxes, 
+    and performs periodic facial authentication.
+
+    Args:
+        - A cv2 frame
+
+    Returns: 
+        - list[tuple[tuple[int, int, int, int], str]]
+        - A list containing bounding box coordinates (x, y, w, h) paired 
+          with the detected or recognized name.
+    """
     global last_check, authenticated, last_auth_time, tracked_faces
 
     if authenticated and time.time() - last_auth_time < AUTH_LOCK_TIME:
@@ -62,7 +72,7 @@ def detecting_bounding_box(frame):
                 detected_name = t_name
                 break
 
-        # 2. Run DeepFace recognition if the interval has passed
+        # Run DeepFace recognition if the interval has passed
         if current_time - last_check > CHECK_INTERVAL:
             face_crop = frame[y:y+h, x:x+w]
             match = authorize(face_crop)
@@ -79,10 +89,20 @@ def detecting_bounding_box(frame):
     # Update our global tracker
     tracked_faces = current_tracked 
     
-    return tracked_faces # Now returns a list of ((x, y, w, h), "Name")
+    return tracked_faces # Returns a list of ((x, y, w, h), "Name")
 
 
 def authorize(face_img):
+    """
+    Handles authorization logic. Prints results to CLI
+    Args:
+        - face_img (numpy.ndarray): Cropped image of a detected face.
+
+    Returns:
+        - str | None
+        - The name of the authenticated individual if a match is found,
+          otherwise None.
+    """
     match = check_faces(face_img)
     if match:
         print("Authorized:", match)
@@ -93,6 +113,18 @@ def authorize(face_img):
 
 
 def check_faces(face_img):
+    """
+    Generates a facial embedding from the provided face image and
+    compares it against stored reference embeddings to determine identity.
+
+    Args:
+        - face_img (numpy.ndarray): Cropped image of a detected face.
+
+    Returns:
+        - str | None
+        - The name of the matched individual if authentication succeeds,
+          otherwise None.
+    """
     global authenticated, last_auth_time
 
     try:
@@ -114,6 +146,3 @@ def check_faces(face_img):
             return name
 
     return None
-
-def is_authenticated():
-    return authenticated

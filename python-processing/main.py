@@ -4,7 +4,6 @@ import face_recognition as fr
 import gesture_recognition as gr
 import pose as pr
 import mediapipe as mp
-import numpy as np
 import time
 
 model_path = './gesture_recognizer.task'
@@ -26,11 +25,10 @@ pr_options = mp.tasks.vision.PoseLandmarkerOptions(
     running_mode=VisionRunningMode.LIVE_STREAM,
     result_callback=pr.update_pose_result
 )
-def get_dist(p1_x, p1_y, p2_x, p2_y):
-    return np.sqrt((p1_x - p2_x)**2 + (p1_y - p2_y)**2)
 
 def main():
     cam = cv2.VideoCapture(0)
+    # Get the dimensions of the frame
     frame_w = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_h = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
@@ -54,7 +52,6 @@ def main():
 
             # 2. Check for Pose Landmarks
             if pr.latest_pose_result:
-                pose_landmarks = pr.latest_pose_result[0]
                 # Coordinates 
                 nose_x, nose_y = pr.get_nose_coords(pr.latest_pose_result, frame_w, frame_h)
                 rw_x, rw_y = pr.get_wrist_coords(pr.latest_pose_result, frame_w, frame_h, "right")
@@ -62,10 +59,10 @@ def main():
 
                 # 3. Check Gesture vs. Wrists
                 if gr.latest_result and gr.latest_result.hand_landmarks:
-                    for idx, hand_landmarks in enumerate(gr.latest_result.hand_landmarks):
+                    for hand_landmarks in enumerate(gr.latest_result.hand_landmarks):
                         gx, gy = int(hand_landmarks[0].x * frame_w), int(hand_landmarks[0].y * frame_h)
                         
-                        if get_dist(gx, gy, rw_x, rw_y) < 50 or get_dist(gx, gy, lw_x, lw_y) < 50:
+                        if pr.get_dist(gx, gy, rw_x, rw_y) < 50 or pr.get_dist(gx, gy, lw_x, lw_y) < 50:
                             
                             # 4. Check Nose vs. Face Boxes WITH Names
                             for (box, name) in face_data:
