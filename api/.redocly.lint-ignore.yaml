@@ -11,6 +11,9 @@ paths/ping.yml:
 paths/user.yml:
   security-defined:
     - '#/post'
+paths/auth_login.yml:
+  security-defined:
+    - '#/post'
 
 #TODO implement security for all of the following endpoints
 paths/user_{id}.yml:

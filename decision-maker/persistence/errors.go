@@ -6,6 +6,9 @@ import (
 	"strings"
 )
 
+//TODO constant errors using function notation (removes need for a ParseDBError function)
+// ErrFoo(dbType) error
+
 const PostgresError = iota
 
 // general

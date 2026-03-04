@@ -9,9 +9,13 @@ paths:
   /ping:
     $ref: paths/ping.yml
   /user:
-    $ref: ./paths/user.yml
+    $ref: paths/user.yml
   /user/{id}:
-    $ref: ./paths/user_{id}.yml
+    $ref: paths/user_{id}.yml
+  /auth/login:
+    $ref: paths/auth_login.yml
+  /auth/refresh:
+    $ref: paths/auth_refresh.yml
   /device:
     $ref: paths/device.yml
   /device/{id}:
@@ -22,3 +26,15 @@ paths:
     $ref: paths/workflow_{id}.yml
   /workflow/{id}/devices:
     $ref: paths/workflow_{id}_devices.yml
+components:
+  securitySchemes:
+    accessToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: A refresh JWT token
+    refreshToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: A refresh JWT token

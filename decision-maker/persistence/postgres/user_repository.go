@@ -40,6 +40,31 @@ func (r UserRepository) Create(ctx context.Context, username, password string) (
 	}, err
 }
 
+func (r UserRepository) GetByUsername(ctx context.Context, username string) (model.User, error) {
+	u := model.User{}
+	err := r.database.
+		QueryRowContext(ctx, `select * from "user" where username = $1`, username).
+		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken)
+
+	if err != nil {
+		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)
+	}
+	return u, nil
+}
+
+func (r UserRepository) UpdateRefreshToken(ctx context.Context, id, refreshToken string) error {
+	query := `
+update "user"
+set refresh_token = $1
+where id = $2;
+`
+	_, err := r.database.ExecContext(ctx, query, refreshToken, id)
+	if err != nil {
+		return persistence.ParseDBError(persistence.PostgresError, err)
+	}
+	return nil
+}
+
 func (r UserRepository) Delete(ctx context.Context, id string) error {
 	res, err := r.database.ExecContext(ctx, `delete from "user" where id = $1`, id)
 	if err != nil {
