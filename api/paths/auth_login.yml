@@ -1,0 +1,39 @@
+post:
+  summary: Authenticate user
+  operationId: loginUser
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          $ref: ../components/schemas/UserPostRequest.yml
+  responses:
+    '200':
+      description: User authenticated successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            description: User info, access and refresh tokens
+            properties:
+              userId:
+                type: string
+                description: User ID
+                example: gZ84IFg_GsRR
+              username:
+                type: string
+                description: User name
+                example: caiocotts
+              accessToken:
+                type: string
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+              refreshToken:
+                type: string
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwiaWF0IjoxNzcyMzM4Mzc0fQ.j7lXTjKOmJlMvAV_h0I1dSf6nUXCxnjHWM2-DwxVleM
+            required:
+              - userId
+              - username
+              - accessToken
+              - refreshToken
+    '403':
+      $ref: ../components/responses/Forbidden.yml
