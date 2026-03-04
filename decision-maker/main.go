@@ -2,7 +2,10 @@ package main
 
 import (
 	"decisionMaker/api"
+	"decisionMaker/config"
+	"decisionMaker/consts"
 	"decisionMaker/persistence/postgres"
+	"decisionMaker/service/auth"
 	"decisionMaker/service/device"
 	"decisionMaker/service/user"
 	"decisionMaker/service/workflow"
@@ -12,19 +15,10 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/joho/godotenv"
 )
 
-func init() {
-	err := godotenv.Load("../.env")
-	if err != nil {
-		log.Fatal("error: loading .env:", err)
-	}
-}
-
 func main() {
-	const baseUrl = "/api"
-
+	config.Load()
 	fmt.Println(Banner())
 
 	db, err := postgres.GetInstance()
@@ -40,20 +34,22 @@ func main() {
 	deviceService := device.NewService(deviceRepository)
 	userService := user.NewService(userRepository)
 	workflowService := workflow.NewService(workflowRepository)
+	authService := auth.NewService(userRepository)
 
-	server := api.NewServer(deviceService, userService, workflowService)
+	server := api.NewServer(deviceService, userService, workflowService, authService)
 
 	router := chi.NewMux()
 	router.Use(middleware.Logger)
+	router.Use(api.JWTAuthMiddleware(authService.ValidateAccessToken))
 
-	router.Get(baseUrl+"/docs", func(w http.ResponseWriter, _ *http.Request) {
+	router.Get(consts.APIBaseUrl+"/docs", func(w http.ResponseWriter, _ *http.Request) {
 		_, err := w.Write(api.Docs)
 		if err != nil {
 			log.Print(err)
 		}
 	})
 
-	router.Get(baseUrl+"/spec", func(w http.ResponseWriter, _ *http.Request) {
+	router.Get(consts.APIBaseUrl+"/spec", func(w http.ResponseWriter, _ *http.Request) {
 		_, err := w.Write(api.Spec)
 		if err != nil {
 			log.Print(err)
@@ -61,7 +57,7 @@ func main() {
 	})
 
 	si := api.NewStrictHandler(server, nil)
-	h := api.HandlerFromMuxWithBaseURL(si, router, baseUrl)
+	h := api.HandlerFromMuxWithBaseURL(si, router, consts.APIBaseUrl)
 
 	log.Println("ready to accept requests")
 

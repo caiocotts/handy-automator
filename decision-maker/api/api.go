@@ -7,6 +7,7 @@ package api
 import (
 	"context"
 	"decisionMaker/persistence"
+	"decisionMaker/service/auth"
 	"decisionMaker/service/device"
 	"decisionMaker/service/user"
 	"decisionMaker/service/workflow"
@@ -27,13 +28,15 @@ type Server struct {
 	deviceService   *device.Service
 	userService     *user.Service
 	workflowService *workflow.Service
+	authService     *auth.Service
 }
 
-func NewServer(ds *device.Service, us *user.Service, ws *workflow.Service) Server {
+func NewServer(ds *device.Service, us *user.Service, ws *workflow.Service, as *auth.Service) Server {
 	return Server{
 		deviceService:   ds,
 		userService:     us,
 		workflowService: ws,
+		authService:     as,
 	}
 }
 
@@ -56,6 +59,26 @@ func (s Server) CreateUser(ctx context.Context, request CreateUserRequestObject)
 		Id:       u.Id,
 		Username: u.Username,
 	}, nil
+}
+
+func (s Server) LoginUser(ctx context.Context, request LoginUserRequestObject) (LoginUserResponseObject, error) {
+	u, at, err := s.authService.Login(ctx, request.Body.Username, request.Body.Password)
+	if err != nil {
+		log.Print(err)
+		return nil, err //TODO implement 500 error message with ref code
+	}
+
+	return LoginUser200JSONResponse{
+		UserId:       u.Id,
+		Username:     u.Username,
+		AccessToken:  at,
+		RefreshToken: *u.RefreshToken,
+	}, nil
+}
+
+func (s Server) RefreshAccessToken(ctx context.Context, request RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error) {
+	//TODO implement me
+	panic("implement me")
 }
 
 func (s Server) DeleteUser(ctx context.Context, request DeleteUserRequestObject) (DeleteUserResponseObject, error) {
