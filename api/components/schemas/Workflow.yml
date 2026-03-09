@@ -7,7 +7,7 @@ properties:
     type: string
     example: Turn on bedroom lights
   devices:
-    $ref: ../schemas/DeviceList.yml
+    $ref: ./DeviceList.yml
 required:
   - id
   - name

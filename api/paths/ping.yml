@@ -7,4 +7,10 @@ get:
       content:
         application/json:
           schema:
-            $ref: ../components/schemas/Pong.yml
+            type: object
+            properties:
+              status:
+                type: string
+                example: ok
+            required:
+              - status

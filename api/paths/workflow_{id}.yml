@@ -17,7 +17,6 @@ get:
             $ref: ../components/schemas/Workflow.yml
     '404':
       $ref: ../components/responses/NotFound.yml
-
 delete:
   summary: Delete workflow by ID
   operationId: deleteWorkflow
@@ -33,7 +32,6 @@ delete:
       description: Workflow record successfully deleted
     '404':
       $ref: ../components/responses/NotFound.yml
-
 patch:
   summary: Update workflow
   operationId: updateWorkflow
@@ -48,7 +46,12 @@ patch:
     content:
       application/json:
         schema:
-          $ref: ../components/schemas/WorkflowPatchRequest.yml
+          type: object
+          properties:
+            name:
+              type: string
+              description: Workflow name
+              example: Turn on bedroom lights
   responses:
     '200':
       description: Workflow record successfully updated

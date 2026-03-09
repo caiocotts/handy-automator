@@ -6,6 +6,6 @@ content:
       properties:
         message:
           type: string
-          example: "unable to find requested record"
+          example: unable to find requested record
       required:
         - message

@@ -17,7 +17,6 @@ get:
             $ref: ../components/schemas/Device.yml
     '404':
       $ref: ../components/responses/NotFound.yml
-
 delete:
   summary: Delete device by ID
   operationId: deleteDevice
