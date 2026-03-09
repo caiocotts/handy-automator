@@ -38,22 +38,21 @@ func JWTAuthMiddleware(validateToken func(token string) (string, error)) func(ht
 
 			ctx := context.WithValue(r.Context(), "userId", uid)
 			next.ServeHTTP(w, r.WithContext(ctx))
-			next.ServeHTTP(w, r)
 		})
 	}
 }
 
-func getPublicEndpoints() set {
+func getPublicEndpoints() endpointSet {
 	apiSpec, err := GetSwagger()
 	if err != nil {
 		log.Fatal("error parsing OpenAPI spec:", err)
 	}
-	pe := *newSet()
+	pe := *newEndpointSet()
 	for path, pathItem := range apiSpec.Paths.Map() {
 		for method, operation := range pathItem.Operations() {
 			if operation.Security == nil || len(*operation.Security) == 0 {
-				key := fmt.Sprintf("%s %s", strings.ToUpper(method), consts.APIBaseUrl+path)
-				pe.add(key)
+				endpoint := fmt.Sprintf("%s %s", strings.ToUpper(method), consts.APIBaseUrl+path)
+				pe.add(endpoint)
 			}
 		}
 	}
@@ -62,25 +61,47 @@ func getPublicEndpoints() set {
 	return pe
 }
 
-type set struct {
+type endpointSet struct {
 	data map[string]any
 }
 
-func newSet() *set {
-	return &set{data: make(map[string]any)}
+func newEndpointSet() *endpointSet {
+	return &endpointSet{data: make(map[string]any)}
 }
 
-func (s set) add(item string) {
-	s.data[item] = nil
+func (s endpointSet) add(endpoint string) {
+	s.data[endpoint] = nil
 }
 
-func (s set) contains(item string) bool {
-	if _, ok := s.data[item]; ok {
-		return true
+func (s endpointSet) contains(endpoint string) bool {
+	parts := strings.Split(endpoint, " ")
+	method, pathSegments := parts[0], strings.Split(parts[1], "/")
+
+	for publicEndpoint := range s.data {
+		publicEndpointParts := strings.Split(publicEndpoint, " ")
+		publicEndpointPathTemplate := strings.Split(publicEndpointParts[1], "/")
+		if publicEndpointParts[0] == method && pathMatchesTemplate(pathSegments, publicEndpointPathTemplate) {
+			return true
+		}
 	}
 	return false
 }
 
-func (s set) empty() bool {
+func (s endpointSet) empty() bool {
 	return len(s.data) == 0
+}
+
+func pathMatchesTemplate(actual, template []string) bool {
+	if len(actual) != len(template) {
+		return false
+	}
+	for i, seg := range template {
+		if strings.HasPrefix(seg, "{") && strings.HasSuffix(seg, "}") {
+			continue
+		}
+		if seg != actual[i] {
+			return false
+		}
+	}
+	return true
 }
