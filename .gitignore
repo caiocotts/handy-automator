@@ -2,3 +2,5 @@ Makefile
 .env
 .idea
 .vscode
+node_modules
+.expo
