@@ -6,13 +6,25 @@ post:
     content:
       application/json:
         schema:
-          $ref: ../components/schemas/UserPostRequest.yml
+          type: object
+          properties:
+            username:
+              type: string
+              description: User name
+              example: caiocotts
+            password:
+              type: string
+              description: The user's password
+              example: password123
+          required:
+            - username
+            - password
   responses:
-    201:
+    '201':
       description: User registered successfully
       content:
         application/json:
           schema:
             $ref: ../components/schemas/User.yml
-    400:
+    '400':
       $ref: ../components/responses/BadRequest.yml

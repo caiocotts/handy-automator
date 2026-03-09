@@ -1,14 +1,9 @@
 type: array
 description: List of workflows
 items:
-  $ref: ../schemas/Workflow.yml
-example: [
-  {
-    "id": "pXkHij_kJjXh",
-    "name": "Turn on bedroom lights",
-  },
-  {
-    "id": "XXdBr6WRNvmB",
-    "name": "Turn on living room lights",
-  }
-]
+  $ref: ./Workflow.yml
+example:
+  - id: pXkHij_kJjXh
+    name: Turn on bedroom lights
+  - id: XXdBr6WRNvmB
+    name: Turn on living room lights

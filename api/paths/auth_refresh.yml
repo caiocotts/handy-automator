@@ -2,7 +2,7 @@ get:
   summary: Issue new access token
   operationId: refreshAccessToken
   security:
-    - refreshToken: [ ]
+    - refreshToken: []
   responses:
     '200':
       description: New access token issued successfully

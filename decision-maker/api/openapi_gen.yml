@@ -16,7 +16,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Pong'
+                type: object
+                properties:
+                  status:
+                    type: string
+                    example: ok
+                required:
+                  - status
   /user:
     post:
       summary: Register new user
@@ -26,7 +32,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserPostRequest'
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: User name
+                  example: caiocotts
+                password:
+                  type: string
+                  description: The user's password
+                  example: password123
+              required:
+                - username
+                - password
       responses:
         '201':
           description: User registered successfully
@@ -61,7 +79,19 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserPostRequest'
+              type: object
+              properties:
+                username:
+                  type: string
+                  description: User name
+                  example: caiocotts
+                password:
+                  type: string
+                  description: The user's password
+                  example: password123
+              required:
+                - username
+                - password
       responses:
         '200':
           description: User authenticated successfully
@@ -136,7 +166,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/DevicePostRequest'
+              type: object
+              properties:
+                ip:
+                  type: string
+                  description: Device IP
+                  example: 192.168.1.18
+              required:
+                - ip
       responses:
         '201':
           description: Device record successfully created
@@ -203,7 +240,14 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WorkflowPostRequest'
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Workflow name
+                  example: Turn on bedroom lights
+              required:
+                - name
       responses:
         '201':
           description: Workflow record successfully created
@@ -262,7 +306,12 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/WorkflowPatchRequest'
+              type: object
+              properties:
+                name:
+                  type: string
+                  description: Workflow name
+                  example: Turn on bedroom lights
       responses:
         '200':
           description: Workflow record successfully updated
@@ -319,28 +368,6 @@ components:
       bearerFormat: JWT
       description: A refresh JWT token
   schemas:
-    Pong:
-      type: object
-      properties:
-        status:
-          type: string
-          example: ok
-      required:
-        - status
-    UserPostRequest:
-      type: object
-      properties:
-        username:
-          type: string
-          description: User name
-          example: caiocotts
-        password:
-          type: string
-          description: The user's password
-          example: password123
-      required:
-        - username
-        - password
     User:
       type: object
       properties:
@@ -379,15 +406,6 @@ components:
           ip: 192.168.1.18
         - id: xzoYPLkuPuT0
           ip: 192.168.1.42
-    DevicePostRequest:
-      type: object
-      properties:
-        ip:
-          type: string
-          description: Device IP
-          example: 192.168.1.18
-      required:
-        - ip
     Workflow:
       type: object
       properties:
@@ -412,22 +430,6 @@ components:
           name: Turn on bedroom lights
         - id: XXdBr6WRNvmB
           name: Turn on living room lights
-    WorkflowPostRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Workflow name
-          example: Turn on bedroom lights
-      required:
-        - name
-    WorkflowPatchRequest:
-      type: object
-      properties:
-        name:
-          type: string
-          description: Workflow name
-          example: Turn on bedroom lights
   responses:
     BadRequest:
       description: Bad Request
