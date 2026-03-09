@@ -146,3 +146,15 @@ def check_faces(face_img):
             return name
 
     return None
+def is_authenticated_user_present():
+    """
+    Checks if any tracked face in the current frame is an authenticated user.
+
+    Returns:
+        - bool: True if an authenticated user is detected, False otherwise.
+    """
+    for _, name in tracked_faces:
+        if name != "Unknown":
+            return True
+    return False
+
