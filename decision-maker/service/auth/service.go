@@ -36,12 +36,7 @@ func (s Service) Login(ctx context.Context, username, password string) (model.Us
 	if err != nil {
 		return model.User{}, "", ErrInvalidCredentials
 	}
-	t, err := jwt.NewBuilder().
-		Subject(u.Id).
-		Issuer(consts.JWTIssuer).
-		IssuedAt(time.Now()).
-		Expiration(time.Now().AddDate(0, 1, 0)).
-		Build()
+	t, err := createJWT(u.Id, time.Now().AddDate(0, 1, 0))
 	if err != nil {
 		return model.User{}, "", err
 	}
@@ -55,12 +50,7 @@ func (s Service) Login(ctx context.Context, username, password string) (model.Us
 		return model.User{}, "", err
 	}
 
-	t, err = jwt.NewBuilder().
-		Subject(u.Id).
-		Issuer(consts.JWTIssuer).
-		IssuedAt(time.Now()).
-		Expiration(time.Now().Add(time.Hour * 2)).
-		Build()
+	t, err = createJWT(u.Id, time.Now().Add(time.Hour*2))
 	accessToken, err := jwt.Sign(t, jwt.WithKey(jwa.HS256(), config.JWTSecret))
 	if err != nil {
 		fmt.Printf("failed to sign token: %s\n", err)
@@ -72,8 +62,20 @@ func (s Service) Login(ctx context.Context, username, password string) (model.Us
 	return u, string(accessToken), nil
 }
 
-func (s Service) Refresh(ctx context.Context, refreshToken string) (string, error) {
-	return "", nil
+func (s Service) Refresh(ctx context.Context) (string, error) {
+	uid := ctx.Value("userId").(string)
+	if uid == "" {
+		return "", errors.New("uid not set")
+	}
+	t, err := createJWT(uid, time.Now().Add(time.Hour*2))
+
+	accessToken, err := jwt.Sign(t, jwt.WithKey(jwa.HS256(), config.JWTSecret))
+	if err != nil {
+		fmt.Printf("failed to sign token: %s\n", err)
+		return "", err
+	}
+
+	return string(accessToken), nil
 }
 
 func (s Service) ValidateAccessToken(token string) (string, error) {
@@ -88,4 +90,13 @@ func (s Service) ValidateAccessToken(token string) (string, error) {
 	}
 
 	return uid, nil
+}
+
+func createJWT(uid string, expiration time.Time) (jwt.Token, error) {
+	return jwt.NewBuilder().
+		Subject(uid).
+		Issuer(consts.JWTIssuer).
+		IssuedAt(time.Now()).
+		Expiration(expiration).
+		Build()
 }

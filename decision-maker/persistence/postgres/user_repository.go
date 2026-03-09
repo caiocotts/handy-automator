@@ -40,6 +40,18 @@ func (r UserRepository) Create(ctx context.Context, username, password string) (
 	}, err
 }
 
+func (r UserRepository) Get(ctx context.Context, id string) (model.User, error) {
+	u := model.User{}
+	err := r.database.
+		QueryRowContext(ctx, `select * from "user" where id = $1`, id).
+		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken)
+
+	if err != nil {
+		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)
+	}
+	return u, nil
+}
+
 func (r UserRepository) GetByUsername(ctx context.Context, username string) (model.User, error) {
 	u := model.User{}
 	err := r.database.
