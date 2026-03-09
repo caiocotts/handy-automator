@@ -2,89 +2,129 @@ import cv2
 from deepface import DeepFace
 import time
 from scipy.spatial.distance import cosine
-import os
 import mediapipe as mp
+import math
+import face_embeddings as fe
 
-os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2" # Silence warnings
 
+ # Constants
 
-
-# Constants 
 face_classifier = cv2.CascadeClassifier(
     cv2.data.haarcascades + "haarcascade_frontalface_default.xml"
-)
-cam = cv2.VideoCapture(0)
-DB_PATH = os.path.join(os.path.abspath(os.getcwd()), "database")
+) 
 last_check = 0
 CHECK_INTERVAL = 1.0      # Seconds between recognition checks
 THRESHOLD = 0.6           # Cosine similarity threshold
 AUTH_LOCK_TIME = 7.0      # Lock duration after success
 
 authenticated = False
-AUTH_DIR = os.path.join(DB_PATH, "auth_users")
+last_auth_time = 0     
+
 
 known_embeddings = {}  # name -> embedding
+tracked_faces = []
 
-#TODO move to seperate file to run as a script
-for file in os.listdir(AUTH_DIR):
-    if file.lower().endswith((".jpg", ".png", ".jpeg")):
-        path = os.path.join(AUTH_DIR, file)
-        name = os.path.splitext(file)[0]
+#TODO remove when embeddings are on db and replace with this:
+#known_embeddings = face_embeddings.get_faces()
 
-        embedding = DeepFace.represent(
-            img_path=path,
-            model_name="ArcFace",
-            detector_backend="retinaface",
-            enforce_detection=True
-        )[0]["embedding"]
+known_embeddings = fe.get_faces_old()
 
-        known_embeddings[name] = embedding
-        print(f"Loaded embedding for {name}")
 
 
 def detecting_bounding_box(frame):
-    global last_check, authenticated
-    # Skip detection during cooldown
+    """
+    Detects faces within the given video frame, draws bounding boxes, 
+    and performs periodic facial authentication.
+
+    Args:
+        - A cv2 frame
+
+    Returns: 
+        - list[tuple[tuple[int, int, int, int], str]]
+        - A list containing bounding box coordinates (x, y, w, h) paired 
+          with the detected or recognized name.
+    """
+    global last_check, authenticated, last_auth_time, tracked_faces
+
     if authenticated and time.time() - last_auth_time < AUTH_LOCK_TIME:
-        cv2.putText(frame, "AUTHORIZED",
-                    (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
-                    1, (0, 255, 0), 2)
+            cv2.putText(frame, "AUTHORIZED",
+                        (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
+                        1, (0, 255, 0), 2)
     else:
         authenticated = False
     
-
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-    faces = face_classifier.detectMultiScale(
-        gray, 1.05, 5, minSize=(100, 100)
-    )
+    faces = face_classifier.detectMultiScale(gray, 1.05, 5, minSize=(100, 100))
 
     current_time = time.time()
-
+    current_tracked = []
+    
     for (x, y, w, h) in faces:
         cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 3)
-      
+        detected_name = "Unknown"
+
+        cx, cy = x + w/2, y + h/2
+        for t_box, t_name in tracked_faces:
+            tx, ty, tw, th = t_box
+            tcx, tcy = tx + tw/2, ty + th/2
+            # If the center of the face hasn't moved much, assume it's the same person
+            if math.hypot(cx - tcx, cy - tcy) < 50: 
+                detected_name = t_name
+                break
+
+        # Run DeepFace recognition if the interval has passed
         if current_time - last_check > CHECK_INTERVAL:
             face_crop = frame[y:y+h, x:x+w]
-            authorize(face_crop)
-            if authenticated:
-                face_centre = ((x+w) /2 ,(y+h) / 2)
-                print(face_centre)
-                # Can use these values to move camera
+            match = authorize(face_crop)
+            if match:
+                detected_name = match
+                
+        # Store the result for this frame
+        current_tracked.append(((x, y, w, h), detected_name))
 
-            last_check = current_time
-
-
+    # Reset the timer if we just checked
+    if current_time - last_check > CHECK_INTERVAL:
+        last_check = current_time
+        
+    # Update our global tracker
+    tracked_faces = current_tracked 
+    
+    return tracked_faces # Returns a list of ((x, y, w, h), "Name")
 
 
 def authorize(face_img):
+    """
+    Handles authorization logic. Prints results to CLI
+    Args:
+        - face_img (numpy.ndarray): Cropped image of a detected face.
+
+    Returns:
+        - str | None
+        - The name of the authenticated individual if a match is found,
+          otherwise None.
+    """
     match = check_faces(face_img)
     if match:
         print("Authorized:", match)
+        return match # Return the matched name
     else:
         print("Unknown face")
+        return None
 
 
 def check_faces(face_img):
+    """
+    Generates a facial embedding from the provided face image and
+    compares it against stored reference embeddings to determine identity.
+
+    Args:
+        - face_img (numpy.ndarray): Cropped image of a detected face.
+
+    Returns:
+        - str | None
+        - The name of the matched individual if authentication succeeds,
+          otherwise None.
+    """
     global authenticated, last_auth_time
 
     try:
@@ -106,19 +146,15 @@ def check_faces(face_img):
             return name
 
     return None
+def is_authenticated_user_present():
+    """
+    Checks if any tracked face in the current frame is an authenticated user.
 
-def is_authenticated():
-    return authenticated
+    Returns:
+        - bool: True if an authenticated user is detected, False otherwise.
+    """
+    for _, name in tracked_faces:
+        if name != "Unknown":
+            return True
+    return False
 
-
-
-
-#STEPS
-'''
-1. Pre-load all the authorized images into vectors
-2. Scan for faces
-2.5. Zoom in if needed and check different faces
-3. Find if any face matches an auth face
-4. Crop body and follow?
-5.? Check for gestures within cropped frame
-'''

@@ -1,5 +1,7 @@
 Makefile
 .env
 .idea
+.jpg
+.png
 .vscode
 __pycache__
