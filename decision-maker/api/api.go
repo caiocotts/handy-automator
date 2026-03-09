@@ -77,8 +77,14 @@ func (s Server) LoginUser(ctx context.Context, request LoginUserRequestObject) (
 }
 
 func (s Server) RefreshAccessToken(ctx context.Context, request RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+	at, err := s.authService.Refresh(ctx)
+	if err != nil {
+		log.Print(err)
+		return nil, err //TODO implement 500 error message with ref code
+	}
+	return RefreshAccessToken200JSONResponse{
+		AccessToken: at,
+	}, nil
 }
 
 func (s Server) DeleteUser(ctx context.Context, request DeleteUserRequestObject) (DeleteUserResponseObject, error) {
