@@ -40,7 +40,7 @@ func NewServer(ds *device.Service, us *user.Service, ws *workflow.Service, as *a
 	}
 }
 
-func (s Server) Ping(_ context.Context, _ PingRequestObject) (PingResponseObject, error) {
+func (s Server) Ping(context.Context, PingRequestObject) (PingResponseObject, error) {
 	return Ping200JSONResponse{Status: "ok"}, nil
 }
 
@@ -76,7 +76,7 @@ func (s Server) LoginUser(ctx context.Context, request LoginUserRequestObject) (
 	}, nil
 }
 
-func (s Server) RefreshAccessToken(ctx context.Context, request RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error) {
+func (s Server) RefreshAccessToken(ctx context.Context, _ RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error) {
 	at, err := s.authService.Refresh(ctx)
 	if err != nil {
 		log.Print(err)
@@ -147,7 +147,7 @@ func (s Server) CreateDevice(ctx context.Context, request CreateDeviceRequestObj
 	d, err := s.deviceService.Create(ctx, ip)
 	if err != nil {
 		log.Print(err)
-		return nil, err
+		return nil, err //TODO implement 500 error message with ref code
 	}
 	return CreateDevice201JSONResponse{
 		Id: d.Id,
@@ -173,7 +173,7 @@ func (s Server) CreateWorkflow(ctx context.Context, request CreateWorkflowReques
 	w, err := s.workflowService.Create(ctx, name)
 	if err != nil {
 		log.Print(err)
-		return nil, err
+		return nil, err //TODO implement 500 error message with ref code
 	}
 
 	return CreateWorkflow201JSONResponse{
@@ -183,7 +183,7 @@ func (s Server) CreateWorkflow(ctx context.Context, request CreateWorkflowReques
 	}, nil
 }
 
-func (s Server) DeleteWorkflow(ctx context.Context, request DeleteWorkflowRequestObject) (DeleteWorkflowResponseObject, error) {
+func (s Server) DeleteWorkflow(context.Context, DeleteWorkflowRequestObject) (DeleteWorkflowResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
@@ -205,17 +205,17 @@ func (s Server) GetWorkflow(ctx context.Context, request GetWorkflowRequestObjec
 	}, nil
 }
 
-func (s Server) GetWorkflows(ctx context.Context, request GetWorkflowsRequestObject) (GetWorkflowsResponseObject, error) {
+func (s Server) GetWorkflows(context.Context, GetWorkflowsRequestObject) (GetWorkflowsResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Server) UpdateWorkflow(ctx context.Context, request UpdateWorkflowRequestObject) (UpdateWorkflowResponseObject, error) {
+func (s Server) UpdateWorkflow(context.Context, UpdateWorkflowRequestObject) (UpdateWorkflowResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Server) AssociateWorkflowDevices(ctx context.Context, request AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error) {
+func (s Server) AssociateWorkflowDevices(context.Context, AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
