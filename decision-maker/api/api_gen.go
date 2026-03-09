@@ -22,6 +22,7 @@ import (
 )
 
 const (
+	AccessTokenScopes  = "accessToken.Scopes"
 	RefreshTokenScopes = "refreshToken.Scopes"
 )
 
@@ -280,6 +281,12 @@ func (siw *ServerInterfaceWrapper) RefreshAccessToken(w http.ResponseWriter, r *
 // GetDevices operation middleware
 func (siw *ServerInterfaceWrapper) GetDevices(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetDevices(w, r)
 	}))
@@ -293,6 +300,12 @@ func (siw *ServerInterfaceWrapper) GetDevices(w http.ResponseWriter, r *http.Req
 
 // CreateDevice operation middleware
 func (siw *ServerInterfaceWrapper) CreateDevice(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateDevice(w, r)
@@ -319,6 +332,12 @@ func (siw *ServerInterfaceWrapper) DeleteDevice(w http.ResponseWriter, r *http.R
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteDevice(w, r, id)
 	}))
@@ -343,6 +362,12 @@ func (siw *ServerInterfaceWrapper) GetDevice(w http.ResponseWriter, r *http.Requ
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetDevice(w, r, id)
@@ -397,6 +422,12 @@ func (siw *ServerInterfaceWrapper) DeleteUser(w http.ResponseWriter, r *http.Req
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteUser(w, r, id)
 	}))
@@ -411,6 +442,12 @@ func (siw *ServerInterfaceWrapper) DeleteUser(w http.ResponseWriter, r *http.Req
 // GetWorkflows operation middleware
 func (siw *ServerInterfaceWrapper) GetWorkflows(w http.ResponseWriter, r *http.Request) {
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetWorkflows(w, r)
 	}))
@@ -424,6 +461,12 @@ func (siw *ServerInterfaceWrapper) GetWorkflows(w http.ResponseWriter, r *http.R
 
 // CreateWorkflow operation middleware
 func (siw *ServerInterfaceWrapper) CreateWorkflow(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateWorkflow(w, r)
@@ -450,6 +493,12 @@ func (siw *ServerInterfaceWrapper) DeleteWorkflow(w http.ResponseWriter, r *http
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.DeleteWorkflow(w, r, id)
 	}))
@@ -474,6 +523,12 @@ func (siw *ServerInterfaceWrapper) GetWorkflow(w http.ResponseWriter, r *http.Re
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetWorkflow(w, r, id)
@@ -500,6 +555,12 @@ func (siw *ServerInterfaceWrapper) UpdateWorkflow(w http.ResponseWriter, r *http
 		return
 	}
 
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.UpdateWorkflow(w, r, id)
 	}))
@@ -524,6 +585,12 @@ func (siw *ServerInterfaceWrapper) AssociateWorkflowDevices(w http.ResponseWrite
 		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
 		return
 	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.AssociateWorkflowDevices(w, r, id)
@@ -1690,35 +1757,35 @@ func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"AAD//xZ5XbUGJwAA",
+	"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",
+	"YZ9oi8fF/wIAAP//uk0o0WYoAAA=",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

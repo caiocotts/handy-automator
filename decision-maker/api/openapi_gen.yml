@@ -58,6 +58,8 @@ paths:
     delete:
       summary: Delete user by ID
       operationId: deleteUser
+      security:
+        - accessToken: []
       parameters:
         - name: id
           in: path
@@ -148,6 +150,8 @@ paths:
     get:
       summary: Get all devices
       operationId: getDevices
+      security:
+        - accessToken: []
       responses:
         '200':
           description: Device records successfully retrieved
@@ -161,6 +165,8 @@ paths:
     post:
       summary: Create a device
       operationId: createDevice
+      security:
+        - accessToken: []
       requestBody:
         required: true
         content:
@@ -187,6 +193,8 @@ paths:
     get:
       summary: Get device by ID
       operationId: getDevice
+      security:
+        - accessToken: []
       parameters:
         - name: id
           in: path
@@ -206,6 +214,8 @@ paths:
     delete:
       summary: Delete device by ID
       operationId: deleteDevice
+      security:
+        - accessToken: []
       parameters:
         - name: id
           in: path
@@ -222,6 +232,8 @@ paths:
     get:
       summary: Get all workflows
       operationId: getWorkflows
+      security:
+        - accessToken: []
       responses:
         '200':
           description: Workflow records successfully retrieved
@@ -235,6 +247,8 @@ paths:
     post:
       summary: Create a workflow
       operationId: createWorkflow
+      security:
+        - accessToken: []
       requestBody:
         required: true
         content:
@@ -261,6 +275,8 @@ paths:
     get:
       summary: Get workflow by ID
       operationId: getWorkflow
+      security:
+        - accessToken: []
       parameters:
         - name: id
           in: path
@@ -280,6 +296,8 @@ paths:
     delete:
       summary: Delete workflow by ID
       operationId: deleteWorkflow
+      security:
+        - accessToken: []
       parameters:
         - name: id
           in: path
@@ -295,6 +313,8 @@ paths:
     patch:
       summary: Update workflow
       operationId: updateWorkflow
+      security:
+        - accessToken: []
       parameters:
         - name: id
           in: path
@@ -327,6 +347,8 @@ paths:
     put:
       summary: Associate devices to a workflow
       operationId: associateWorkflowDevices
+      security:
+        - accessToken: []
       parameters:
         - name: id
           in: path
