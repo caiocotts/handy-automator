@@ -1,6 +1,8 @@
 get:
   summary: Get all devices
   operationId: getDevices
+  security:
+    - accessToken: [ ]
   responses:
     '200':
       description: Device records successfully retrieved
@@ -14,6 +16,8 @@ get:
 post:
   summary: Create a device
   operationId: createDevice
+  security:
+    - accessToken: [ ]
   requestBody:
     required: true
     content:

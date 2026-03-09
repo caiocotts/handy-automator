@@ -1,6 +1,8 @@
 get:
   summary: Get workflow by ID
   operationId: getWorkflow
+  security:
+    - accessToken: [ ]
   parameters:
     - name: id
       in: path
@@ -20,6 +22,8 @@ get:
 delete:
   summary: Delete workflow by ID
   operationId: deleteWorkflow
+  security:
+    - accessToken: [ ]
   parameters:
     - name: id
       in: path
@@ -35,6 +39,8 @@ delete:
 patch:
   summary: Update workflow
   operationId: updateWorkflow
+  security:
+    - accessToken: [ ]
   parameters:
     - name: id
       in: path

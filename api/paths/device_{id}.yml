@@ -1,6 +1,8 @@
 get:
   summary: Get device by ID
   operationId: getDevice
+  security:
+    - accessToken: [ ]
   parameters:
     - name: id
       in: path
@@ -20,6 +22,8 @@ get:
 delete:
   summary: Delete device by ID
   operationId: deleteDevice
+  security:
+    - accessToken: [ ]
   parameters:
     - name: id
       in: path

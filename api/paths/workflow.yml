@@ -1,6 +1,8 @@
 get:
   summary: Get all workflows
   operationId: getWorkflows
+  security:
+    - accessToken: [ ]
   responses:
     '200':
       description: Workflow records successfully retrieved
@@ -14,6 +16,8 @@ get:
 post:
   summary: Create a workflow
   operationId: createWorkflow
+  security:
+    - accessToken: [ ]
   requestBody:
     required: true
     content:
