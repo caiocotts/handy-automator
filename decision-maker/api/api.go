@@ -95,6 +95,24 @@ func (s Server) DeleteUser(ctx context.Context, request DeleteUserRequestObject)
 	return DeleteUser204Response{}, nil
 }
 
+func (s Server) CreateDevice(ctx context.Context, request CreateDeviceRequestObject) (CreateDeviceResponseObject, error) {
+	ip := net.ParseIP(request.Body.Ip)
+	if ip == nil {
+		return CreateDevice400JSONResponse{
+			Message: fmt.Sprintf(`'%s' is not a valid ip`, request.Body.Ip),
+		}, nil
+	}
+	d, err := s.deviceService.Create(ctx, ip)
+	if err != nil {
+		log.Print(err)
+		return nil, err //TODO implement 500 error message with ref code
+	}
+	return CreateDevice201JSONResponse{
+		Id: d.Id,
+		Ip: d.Ip.String(),
+	}, nil
+}
+
 func (s Server) GetDevice(ctx context.Context, request GetDeviceRequestObject) (GetDeviceResponseObject, error) {
 	d, err := s.deviceService.GetById(ctx, request.Id)
 	if errors.Is(err, persistence.ErrNotFound) {
@@ -137,24 +155,6 @@ func (s Server) GetDevices(ctx context.Context, _ GetDevicesRequestObject) (GetD
 	}, nil
 }
 
-func (s Server) CreateDevice(ctx context.Context, request CreateDeviceRequestObject) (CreateDeviceResponseObject, error) {
-	ip := net.ParseIP(request.Body.Ip)
-	if ip == nil {
-		return CreateDevice400JSONResponse{
-			Message: fmt.Sprintf(`'%s' is not a valid ip`, request.Body.Ip),
-		}, nil
-	}
-	d, err := s.deviceService.Create(ctx, ip)
-	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
-	}
-	return CreateDevice201JSONResponse{
-		Id: d.Id,
-		Ip: d.Ip.String(),
-	}, nil
-}
-
 func (s Server) DeleteDevice(ctx context.Context, request DeleteDeviceRequestObject) (DeleteDeviceResponseObject, error) {
 	err := s.deviceService.Delete(ctx, request.Id)
 	if errors.Is(err, persistence.ErrNotFound) {
@@ -180,12 +180,8 @@ func (s Server) CreateWorkflow(ctx context.Context, request CreateWorkflowReques
 		Devices: nil,
 		Id:      w.Id,
 		Name:    w.Name,
+		UserId:  w.UserId,
 	}, nil
-}
-
-func (s Server) DeleteWorkflow(context.Context, DeleteWorkflowRequestObject) (DeleteWorkflowResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
 }
 
 func (s Server) GetWorkflow(ctx context.Context, request GetWorkflowRequestObject) (GetWorkflowResponseObject, error) {
@@ -205,12 +201,45 @@ func (s Server) GetWorkflow(ctx context.Context, request GetWorkflowRequestObjec
 	}, nil
 }
 
-func (s Server) GetWorkflows(context.Context, GetWorkflowsRequestObject) (GetWorkflowsResponseObject, error) {
+func (s Server) GetWorkflows(ctx context.Context, _ GetWorkflowsRequestObject) (GetWorkflowsResponseObject, error) {
+	workflows, err := s.workflowService.GetAll(ctx)
+	if err != nil {
+		log.Print(err)
+		return nil, err //TODO implement 500 error message with ref code
+	}
+	workflowStructSlice := make([]struct {
+		Devices *[]struct {
+			Id string `json:"id"`
+			Ip string `json:"ip"`
+		} `json:"devices,omitempty"`
+		Id     string `json:"id"`
+		Name   string `json:"name"`
+		UserId string `json:"userId"`
+	}, len(workflows))
+
+	for i, w := range workflows {
+		workflowStructSlice[i] = struct {
+			Devices *[]struct {
+				Id string `json:"id"`
+				Ip string `json:"ip"`
+			} `json:"devices,omitempty"`
+			Id     string `json:"id"`
+			Name   string `json:"name"`
+			UserId string `json:"userId"`
+		}{Devices: nil, Id: w.Id, Name: w.Name, UserId: w.UserId}
+	}
+
+	return GetWorkflows200JSONResponse{
+		Workflows: &workflowStructSlice,
+	}, nil
+}
+
+func (s Server) UpdateWorkflow(context.Context, UpdateWorkflowRequestObject) (UpdateWorkflowResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
 
-func (s Server) UpdateWorkflow(context.Context, UpdateWorkflowRequestObject) (UpdateWorkflowResponseObject, error) {
+func (s Server) DeleteWorkflow(context.Context, DeleteWorkflowRequestObject) (DeleteWorkflowResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }

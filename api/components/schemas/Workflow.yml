@@ -6,8 +6,12 @@ properties:
   name:
     type: string
     example: Turn on bedroom lights
+  userId:
+    type: string
+    example: gZ84IFg_GsRR
   devices:
     $ref: ./DeviceList.yml
 required:
   - id
   - name
+  - userId

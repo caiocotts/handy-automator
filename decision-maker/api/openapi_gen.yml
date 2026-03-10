@@ -437,11 +437,15 @@ components:
         name:
           type: string
           example: Turn on bedroom lights
+        userId:
+          type: string
+          example: gZ84IFg_GsRR
         devices:
           $ref: '#/components/schemas/DeviceList'
       required:
         - id
         - name
+        - userId
     WorkflowList:
       type: array
       description: List of workflows
@@ -450,8 +454,10 @@ components:
       example:
         - id: pXkHij_kJjXh
           name: Turn on bedroom lights
+          userId: gZ84IFg_GsRR
         - id: XXdBr6WRNvmB
           name: Turn on living room lights
+          userId: aV8NwwxHuh3G
   responses:
     BadRequest:
       description: Bad Request
