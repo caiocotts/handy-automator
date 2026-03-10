@@ -27,7 +27,7 @@ pr_options = mp.tasks.vision.PoseLandmarkerOptions(
 )
 
 def main():
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(2)
     # Get the dimensions of the frame
     frame_w = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_h = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
