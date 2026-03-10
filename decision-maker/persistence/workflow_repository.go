@@ -6,7 +6,7 @@ import (
 )
 
 type WorkflowRepository interface {
-	Create(ctx context.Context, name string) (model.Workflow, error)
+	Create(ctx context.Context, name, userId string) (model.Workflow, error)
 	Get(ctx context.Context, id string) (model.Workflow, error)
 	GetAll(ctx context.Context) ([]model.Workflow, error)
 	Update() (model.Workflow, error)

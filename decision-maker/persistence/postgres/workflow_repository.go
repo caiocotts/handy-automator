@@ -20,18 +20,19 @@ func NewWorkflowRepository(db *sql.DB) *WorkflowRepository {
 	}
 }
 
-func (r WorkflowRepository) Create(ctx context.Context, name string) (model.Workflow, error) {
+func (r WorkflowRepository) Create(ctx context.Context, name, userId string) (model.Workflow, error) {
 	id, err := gonanoid.New(12)
 	if err != nil {
 		return model.Workflow{}, err
 	}
-	_, err = r.database.ExecContext(ctx, `insert into "workflow" values ($1, $2)`, id, name)
+	_, err = r.database.ExecContext(ctx, `insert into "workflow" values ($1, $2, $3)`, id, name, userId)
 	if err != nil {
 		return model.Workflow{}, err
 	}
 	return model.Workflow{
-		Id:   id,
-		Name: name,
+		Id:     id,
+		Name:   name,
+		UserId: userId,
 	}, nil
 
 }
@@ -49,8 +50,23 @@ func (r WorkflowRepository) Get(ctx context.Context, id string) (model.Workflow,
 }
 
 func (r WorkflowRepository) GetAll(ctx context.Context) ([]model.Workflow, error) {
-	//TODO implement me
-	panic("implement me")
+	rows, err := r.database.QueryContext(ctx, `select * from "workflow"`)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var workflows []model.Workflow
+	for rows.Next() {
+		var w model.Workflow
+		if err := rows.Scan(&w.Id, &w.Name, &w.UserId); err != nil {
+			return nil, err
+		}
+		workflows = append(workflows, w)
+	}
+	if err = rows.Err(); err != nil {
+		return workflows, err
+	}
+	return workflows, nil
 }
 
 func (r WorkflowRepository) Update() (model.Workflow, error) {

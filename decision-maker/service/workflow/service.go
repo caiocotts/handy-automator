@@ -15,9 +15,14 @@ func NewService(r persistence.WorkflowRepository) *Service {
 }
 
 func (s Service) Create(ctx context.Context, name string) (model.Workflow, error) {
-	return s.workflowRepository.Create(ctx, name)
+	uid := ctx.Value("userId").(string)
+	return s.workflowRepository.Create(ctx, name, uid)
 }
 
 func (s Service) GetById(ctx context.Context, id string) (model.Workflow, error) {
 	return s.workflowRepository.Get(ctx, id)
+}
+
+func (s Service) GetAll(ctx context.Context) ([]model.Workflow, error) {
+	return s.workflowRepository.GetAll(ctx)
 }
