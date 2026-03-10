@@ -5,6 +5,7 @@ import gesture_recognition as gr
 import pose as pr
 import mediapipe as mp
 import time
+import config
 
 model_path = './gesture_recognizer.task'
 BaseOptions = mp.tasks.BaseOptions
@@ -27,7 +28,7 @@ pr_options = mp.tasks.vision.PoseLandmarkerOptions(
 )
 
 def main():
-    cam = cv2.VideoCapture(2)
+    cam = cv2.VideoCapture(config.get_ptz_camera())
     # Get the dimensions of the frame
     frame_w = int(cam.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_h = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))

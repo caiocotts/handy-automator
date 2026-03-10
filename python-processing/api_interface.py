@@ -18,3 +18,16 @@ def ping(ip_address=get_public_ipv4(), port="3000"):
     print(r.text)
     return r.status_code == 200
 
+""" HIGH PRIO
+    - Get all workflows
+    - Get workflow by id
+"""
+""" LOW PRIO
+    - Panning
+    - Tilting
+    - Zooming
+"""
+""" OPTIONAL
+    - Adjust camera settings (ISO, exposure, etc.) or just auto
+"""
+
