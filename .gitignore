@@ -2,6 +2,7 @@
 .idea
 .jpg
 .png
+tmp
 .vscode
 tmp
 __pycache__
