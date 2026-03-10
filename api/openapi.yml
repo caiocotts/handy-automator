@@ -32,7 +32,7 @@ components:
       type: http
       scheme: bearer
       bearerFormat: JWT
-      description: A refresh JWT token
+      description: An access JWT token
     refreshToken:
       type: http
       scheme: bearer
