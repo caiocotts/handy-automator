@@ -4,7 +4,6 @@
 .png
 tmp
 .vscode
-tmp
 __pycache__
 node_modules
 .expo
