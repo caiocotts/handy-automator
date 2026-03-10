@@ -3,6 +3,7 @@ Makefile
 .idea
 .jpg
 .png
+tmp
 .vscode
 __pycache__
 node_modules
