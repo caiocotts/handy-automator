@@ -5,5 +5,5 @@ alter table if exists "device"
 
 -- +goose Down
 alter table if exists "device"
-    drop column name,
+    drop column type,
     drop column name;
