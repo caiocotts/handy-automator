@@ -415,6 +415,14 @@ components:
           type: string
           description: Device IP
           example: 192.168.1.18
+        name:
+          type: string
+          description: Device name
+          example: Bedroom lamp
+        type:
+          type: string
+          description: Device type
+          example: Light
       required:
         - id
         - ip
@@ -426,8 +434,10 @@ components:
       example:
         - id: pXkHij_kJjXh
           ip: 192.168.1.18
+          name: Bedroom lamp
         - id: xzoYPLkuPuT0
           ip: 192.168.1.42
+          name: Christmas light
     Workflow:
       type: object
       properties:
