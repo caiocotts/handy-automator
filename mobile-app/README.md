@@ -15,6 +15,15 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
    ```bash
    npx expo start
    ```
+   
+3. if you need to download the ios folder run
+    ```bash 
+   npx expo prebuild --platform ios
+
+4. for both android and ios download run :
+    ```bash
+    npx expo prebuild
+    ```
 
 In the output, you'll find options to open the app in a
 
