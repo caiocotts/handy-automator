@@ -9,6 +9,11 @@ import { ThemedView } from '@/components/themed-view';
 import { IconSymbol } from '@/components/ui/icon-symbol';
 import { Fonts } from '@/constants/theme';
 import { Button } from '@react-navigation/elements';
+import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
+
+import React, {useState} from 'react';
+import {Text, TouchableOpacity, View} from 'react-native';
+import {Link} from "expo-router";
 
 function showAlert(message: string) {
   if (Platform.OS === 'web') {
@@ -18,7 +23,25 @@ function showAlert(message: string) {
   }
 }
 export default function TabTwoScreen() {
-  return (
+    const [isOn, setIsOn] = useState(false);
+    const onPress = () => setIsOn(prev => !prev);
+
+
+    // const device = async {
+    //     GET deviceName;
+    //     GET deviceType;
+    //     GET deviceID;
+    //     GET deviceType;
+    // }
+
+    // let devices: string[][] = [];
+    //
+    // let deviceName;
+    // let deviceType;
+    // let isON;
+    // let device = [deviceName, deviceType, isOn]
+    // This is for automatically adding more devices.
+    return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
       headerImage={
@@ -39,46 +62,74 @@ export default function TabTwoScreen() {
         </ThemedText>
       </ThemedView>
       <ThemedText>Your Home Devices</ThemedText>
-      
-      <Collapsible title="Light and dark mode components">
-        <ThemedText>
-          This template has light and dark mode support. The{' '}
-          <ThemedText type="defaultSemiBold">useColorScheme()</ThemedText> hook lets you inspect
-          what the user&apos;s current color scheme is, and so you can adjust UI colors accordingly.
-        </ThemedText>
-        <ExternalLink href="https://docs.expo.dev/develop/user-interface/color-themes/">
-          <ThemedText type="link">Learn more</ThemedText>
-        </ExternalLink>
-      </Collapsible>
-      <Collapsible title="Animations">
-        <ThemedText>
-          This template includes an example of an animated component. The{' '}
-          <ThemedText type="defaultSemiBold">components/HelloWave.tsx</ThemedText> component uses
-          the powerful{' '}
-          <ThemedText type="defaultSemiBold" style={{ fontFamily: Fonts.mono }}>
-            react-native-reanimated
-          </ThemedText>{' '}
-          library to create a waving hand animation.
-        </ThemedText>
-        {Platform.select({
-          ios: (
-            <ThemedText>
-              The <ThemedText type="defaultSemiBold">components/ParallaxScrollView.tsx</ThemedText>{' '}
-              component provides a parallax effect for the header image.
-            </ThemedText>
-          ),
-        })}
-      </Collapsible>
 
-      <Button
-          onPress={() => showAlert('Simple Button pressed')}>
-        Add device
-      </Button>
+        {/* end of new */}
+
+
+        <View style={styles.row}>
+                <View style={styles.countContainer}>
+                    <Text style={{ color: '#FFFFFF' }}>Device 1: {isOn ? 'ON' : 'OFF'}</Text>
+                </View>
+                <TouchableOpacity style={styles.button} onPress={onPress}>
+                    <Text>Turn {isOn ? 'OFF' : 'ON'} </Text>
+                </TouchableOpacity>
+        </View>
+
+
+        <View style={styles.row}>
+            <View style={styles.countContainer}>
+                <Text style={{ color: '#FFFFFF' }}>Device 1: {isOn ? 'ON' : 'OFF'}</Text>
+            </View>
+            <TouchableOpacity style={styles.button} onPress={onPress}>
+                <Text>Turn {isOn ? 'OFF' : 'ON'} </Text>
+            </TouchableOpacity>
+        </View>
+        {/* end of new */}
+
+
+        <Link href="/modal" asChild>
+            <TouchableOpacity style={styles.addButton}>
+                <Text style={styles.addButtonText}>Add device</Text>
+            </TouchableOpacity>
+        </Link>
+
+
     </ParallaxScrollView>
   );
 }
 
 const styles = StyleSheet.create({
+    addButton: {
+        backgroundColor: '#4e8cc2',
+        padding: 10,
+        borderRadius: 8,
+        alignItems: 'center',
+        width: 200
+    },
+
+    addButtonText: {
+        fontSize: 16,
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 10, // space between items
+    },
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        paddingHorizontal: 10,
+    },
+    button: {
+        alignItems: 'center',
+        backgroundColor: '#DDDDDD',
+        padding: 10,
+        width: 100,
+    },
+    countContainer: {
+        alignItems: 'center',
+        padding: 10,
+    },
   headerImage: {
     color: '#808080',
     bottom: -90,
