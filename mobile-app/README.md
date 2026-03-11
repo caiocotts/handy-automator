@@ -4,18 +4,21 @@ This is an [Expo](https://expo.dev) project created with [`create-expo-app`](htt
 
 ## Get started
 
-1. Install dependencies
-
+1. Install dependencies, 
+this is mandatory for setup.
    ```bash
    npm install
    ```
 
-2. Start the app
 
+2. Start the app, - you must run this in the path handy-automator/mobile-app
    ```bash
    npx expo start
    ```
    
+
+
+only necessary if normal testing isnt working.
 3. if you need to download the ios folder run
     ```bash 
    npx expo prebuild --platform ios
