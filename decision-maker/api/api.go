@@ -138,13 +138,17 @@ func (s Server) GetDevices(ctx context.Context, _ GetDevicesRequestObject) (GetD
 		return nil, err //TODO implement 500 error message with ref code
 	}
 	deviceStructSlice := make([]struct {
-		Id string `json:"id"`
-		Ip string `json:"ip"`
+		Id   string  `json:"id"`
+		Ip   string  `json:"ip"`
+		Name *string `json:"name,omitempty"`
+		Type *string `json:"type,omitempty"`
 	}, len(devices))
 	for i, d := range devices {
 		deviceStructSlice[i] = struct {
-			Id string `json:"id"`
-			Ip string `json:"ip"`
+			Id   string  `json:"id"`
+			Ip   string  `json:"ip"`
+			Name *string `json:"name,omitempty"`
+			Type *string `json:"type,omitempty"`
 		}{
 			Id: d.Id,
 			Ip: d.Ip.String(),
@@ -209,8 +213,10 @@ func (s Server) GetWorkflows(ctx context.Context, _ GetWorkflowsRequestObject) (
 	}
 	workflowStructSlice := make([]struct {
 		Devices *[]struct {
-			Id string `json:"id"`
-			Ip string `json:"ip"`
+			Id   string  `json:"id"`
+			Ip   string  `json:"ip"`
+			Name *string `json:"name,omitempty"`
+			Type *string `json:"type,omitempty"`
 		} `json:"devices,omitempty"`
 		Id     string `json:"id"`
 		Name   string `json:"name"`
@@ -220,8 +226,10 @@ func (s Server) GetWorkflows(ctx context.Context, _ GetWorkflowsRequestObject) (
 	for i, w := range workflows {
 		workflowStructSlice[i] = struct {
 			Devices *[]struct {
-				Id string `json:"id"`
-				Ip string `json:"ip"`
+				Id   string  `json:"id"`
+				Ip   string  `json:"ip"`
+				Name *string `json:"name,omitempty"`
+				Type *string `json:"type,omitempty"`
 			} `json:"devices,omitempty"`
 			Id     string `json:"id"`
 			Name   string `json:"name"`
