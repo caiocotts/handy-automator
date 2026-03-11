@@ -6,23 +6,11 @@ import pose as pr
 import mediapipe as mp
 import time
 
-model_path = './gesture_recognizer.task'
-BaseOptions = mp.tasks.BaseOptions
-GestureRecognizer = mp.tasks.vision.GestureRecognizer
-GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
-GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
-VisionRunningMode = mp.tasks.vision.RunningMode
-options = GestureRecognizerOptions( # TODO configure for gesture recognizer
-    base_options=BaseOptions(model_asset_path=model_path), # finds which model to use (hand_landmarker.task)
-    running_mode=VisionRunningMode.LIVE_STREAM, # whether an image, video, or live-stream (can only use detect_async() if live stream)
-    result_callback=gr.update_result, # where the result is sent
-    min_hand_detection_confidence=0.7,
-    num_hands=2
-)
+
 pr_model_path = './pose_landmarker_full.task' 
 pr_options = mp.tasks.vision.PoseLandmarkerOptions(
-    base_options=BaseOptions(model_asset_path=pr_model_path),
-    running_mode=VisionRunningMode.LIVE_STREAM,
+    base_options=gr.BaseOptions(model_asset_path=pr_model_path),
+    running_mode=gr.VisionRunningMode.LIVE_STREAM,
     result_callback=pr.update_pose_result
 )
 
@@ -33,7 +21,7 @@ def main():
     frame_h = int(cam.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
     # We need both recognizers running
-    with gr.create_recognizer(options) as gesture_rec, \
+    with gr.create_recognizer(gr.options) as gesture_rec, \
          pr.create_pose_landmarker(pr_options) as pose_rec:
 
         while True:
