@@ -60,7 +60,7 @@ func (r DeviceRepository) GetAll(ctx context.Context) ([]model.Device, error) {
 	for rows.Next() {
 		var d model.Device
 		var i string
-		if err := rows.Scan(&d.Id, &i); err != nil {
+		if err := rows.Scan(&d.Id, &i, &d.Name, &d.Type); err != nil {
 			return nil, err
 		}
 		d.Ip = net.ParseIP(i)

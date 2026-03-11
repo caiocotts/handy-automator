@@ -5,5 +5,7 @@ items:
 example:
   - id: pXkHij_kJjXh
     ip: 192.168.1.18
+    name: Bedroom lamp
   - id: xzoYPLkuPuT0
     ip: 192.168.1.42
+    name: Christmas light
