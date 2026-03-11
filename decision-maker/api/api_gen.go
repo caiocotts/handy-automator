@@ -71,6 +71,12 @@ type AssociateWorkflowDevicesJSONBody struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 }
 
@@ -841,6 +847,12 @@ type GetDevices200JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 }
 
@@ -865,6 +877,12 @@ type CreateDevice201JSONResponse struct {
 
 	// Ip Device IP
 	Ip string `json:"ip"`
+
+	// Name Device name
+	Name *string `json:"name,omitempty"`
+
+	// Type Device type
+	Type *string `json:"type,omitempty"`
 }
 
 func (response CreateDevice201JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
@@ -926,6 +944,12 @@ type GetDevice200JSONResponse struct {
 
 	// Ip Device IP
 	Ip string `json:"ip"`
+
+	// Name Device name
+	Name *string `json:"name,omitempty"`
+
+	// Type Device type
+	Type *string `json:"type,omitempty"`
 }
 
 func (response GetDevice200JSONResponse) VisitGetDeviceResponse(w http.ResponseWriter) error {
@@ -1042,6 +1066,12 @@ type GetWorkflows200JSONResponse struct {
 
 			// Ip Device IP
 			Ip string `json:"ip"`
+
+			// Name Device name
+			Name *string `json:"name,omitempty"`
+
+			// Type Device type
+			Type *string `json:"type,omitempty"`
 		} `json:"devices,omitempty"`
 		Id     string `json:"id"`
 		Name   string `json:"name"`
@@ -1072,6 +1102,12 @@ type CreateWorkflow201JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 	Id     string `json:"id"`
 	Name   string `json:"name"`
@@ -1139,6 +1175,12 @@ type GetWorkflow200JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 	Id     string `json:"id"`
 	Name   string `json:"name"`
@@ -1180,6 +1222,12 @@ type UpdateWorkflow200JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 	Id     string `json:"id"`
 	Name   string `json:"name"`
@@ -1232,6 +1280,12 @@ type AssociateWorkflowDevices201JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 }
 
@@ -1761,35 +1815,36 @@ func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
