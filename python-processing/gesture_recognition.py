@@ -14,7 +14,7 @@ GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
 GestureRecognizerResult = mp.tasks.vision.GestureRecognizerResult
 VisionRunningMode = mp.tasks.vision.RunningMode
 
-# --- Constants ---
+# --- Constants ---  
 HAND_CONNECTIONS = [
     (0, 1), (1, 2), (2, 3), (3, 4),
     (0, 5), (5, 6), (6, 7), (7, 8),
@@ -24,12 +24,65 @@ HAND_CONNECTIONS = [
     (0, 17)
 ]
 
-# Global variable to store the latest result
-latest_result = None
 
-# --- Custom Drawing Function (Pure OpenCV) ---
-# No more dependency on mp.solutions.drawing_utils or Protobufs!
+# Global variable to store the latest result
+latest_result = None # This will be the one to be accessed when you want the classified gesture
+"""
+This variable will serve as the container for the classified gesture
+
+    -> gestures: List[List[category_module.Category]] 
+        -> category_module.Category: [str: category_name, float: score, int: index]
+    -> handedness: List[List[category_module.Category]] (similar)
+        -> category_module.Category: [str: category_name, float: score, int: index]
+    -> hand_landmarks: List[List[landmark_module.NormalizedLandmark]]
+        -> landmark_module.NormalizedLandmark: [float: x, float: y, float: z]
+    -> hand_world_landmarks: List[List[landmark_module.Landmark]]
+        -> landmark_module.Landmark: [float: x, float: y, float: z]
+
+"""
+
+def update_result(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
+    """
+    Receives the result of the classification when 
+    gesture_rec.recognize_async() is performed and updates the global
+    latest_result.
+
+    Args: 
+        - a GestureRecognizerResult object 
+            -> gestures: Recognized hand gestures of detected hands where its index is always -1
+            -> handedness: Classification of handedness
+            -> hand_world_landmarks: Detected hand landmarks in normalized image coordinates
+        - an Image object
+        - a timestamp of when the frame is taken
+
+    Returns: None
+
+    """
+    global latest_result
+    latest_result = result
+
+
+options = GestureRecognizerOptions( 
+    base_options=BaseOptions(model_asset_path=model_path), # finds which model to use (hand_landmarker.task)
+    running_mode=VisionRunningMode.LIVE_STREAM, # whether an image, video, or live-stream (can only use detect_async() if live stream)
+    result_callback=update_result, # where the result is sent
+    min_hand_detection_confidence=0.7,
+    num_hands=2
+)
+
+# --- Custom Drawing Function ---
 def draw_landmarks_on_image(rgb_image, detection_result):
+    """
+    Draws the landmarks on the frames of the detected hand along with the type of 
+    gesture the hands are and their handedness.
+
+    Args: 
+        - a cv2 frame
+        - a GestureRecognizerResult object 
+    
+    Returns: 
+        - an annotated frame
+    """
     hand_landmarks_list = detection_result.hand_landmarks
     gestures_list = detection_result.gestures  # This is the new list we need
     annotated_image = np.copy(rgb_image)
@@ -73,9 +126,16 @@ def draw_landmarks_on_image(rgb_image, detection_result):
 
 # --- Callback ---
 
-def update_result(result: GestureRecognizerResult, output_image: mp.Image, timestamp_ms: int):
-    global latest_result
-    latest_result = result
-
 def create_recognizer(options):
+    """
+    Loading of the model from the gesture_recognizer.task file that contains the 
+    set of instructions needed to perform a gesture classification
+
+    Args: 
+        - a GestureRecognizerOptions object
+            -> provides customizations to the gesture recognizer task
+    
+    Returns: 
+        - a GestureRecognizer object created from the options
+    """
     return GestureRecognizer.create_from_options(options)

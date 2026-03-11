@@ -51,4 +51,4 @@ python main.py
 ```
 
 
-Press `Q` to exit.
+Press `q` to exit.
