@@ -45,3 +45,7 @@ migration: ##@Database Create a new migration SQL file in db/migrations
 check-db-status: ##@Miscellaneous Check if the database is ready to accept connections (internal)
 	@docker compose exec postgres bash /check-db-connection.sh
 .PHONY:check-db-status
+
+run-py: ##@Development Run the main.py file and start the program
+	@cd ./python-processing && uv run main.py
+.PHONY: run-py
