@@ -1,10 +1,20 @@
-.env
+#IDE files
+.vscode
 .idea
+#Environment
+.env
+
+#Decision Maker
+tmp
+
+#Processing Unit
 .jpg
 .png
-tmp
-.vscode
 __pycache__
+
+#Mobile App
 node_modules
 .expo
+
+#MacOS
 .DS_Store
