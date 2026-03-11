@@ -28,7 +28,7 @@ def get_ptz_camera()-> int|None:
     """
     available = get_available_cameras()
     for keys in available:
-        if available[keys] == "VADDIO":
+        if "vaddio" in available[keys].lower() or "roboshot" in available[keys].lower():
             return keys
     # Change to None when development is done
     return 0
