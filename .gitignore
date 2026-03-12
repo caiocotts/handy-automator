@@ -7,3 +7,5 @@ tmp
 __pycache__
 node_modules
 .expo
+.npy
+python-processing/database/embeddings
