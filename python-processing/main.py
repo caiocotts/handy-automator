@@ -38,6 +38,14 @@ def main():
                 timestamp = int(time.time() * 1000)
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+                username = face_data[0][1]
+            
+                embedding = fr.known_embeddings[username]
+                embedding = embedding.tolist()
+                print(embedding)
+                #REMOVE WHEN ENDPOINT IS READY
+                # api.auth_user_api_call(embedding, username)              
+                
 
                 # 2. Run gesture and pose detections
                 gesture_rec.recognize_async(mp_image, timestamp)
