@@ -38,13 +38,23 @@ def main():
                 timestamp = int(time.time() * 1000)
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
+
                 username = face_data[0][1]
+                if username not in fr.auth_tokens and username in fr.known_embeddings:
+
             
-                embedding = fr.known_embeddings[username]
-                embedding = embedding.tolist()
-                print(embedding)
-                #REMOVE WHEN ENDPOINT IS READY
-                # api.auth_user_api_call(embedding, username)              
+                    embedding = fr.known_embeddings[username]
+                    embedding = embedding.tolist()
+                    
+                    #REMOVE WHEN ENDPOINT IS READY
+
+                    # auth_token = api.auth_user_api_call(embedding, username)
+                    auth_token = api.ping()
+                    print(f'auth token generated')
+                    if auth_token:
+                        # Store the token
+                        fr.auth_tokens[username] = auth_token
+            
                 
 
                 # 2. Run gesture and pose detections
