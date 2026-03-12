@@ -2,6 +2,7 @@ import cv2
 # Module Imports
 import face_recognition as fr
 import gesture_recognition as gr
+import api_interface as api
 import pose as pr
 import mediapipe as mp
 import time
@@ -64,7 +65,9 @@ def main():
                                         # SUCCESS: Format the final display string
                                         display_name = name.upper() if name != "Unknown" else "UNKNOWN"
                                         label_text = f"{display_name} + hand"
-
+                                        gesture_id = gr.get_hardcode_index(gr.latest_result.gestures[0][0].category_name)
+                                        if gesture_id != 0:
+                                            api.ping()
                                         cv2.putText(frame, label_text, (fx, fy-10),
                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
