@@ -11,6 +11,8 @@ tmp
 .jpg
 .png
 __pycache__
+.npy
+python-processing/database/embeddings
 
 #Mobile App
 node_modules
@@ -18,3 +20,4 @@ node_modules
 
 #MacOS
 .DS_Store
+
