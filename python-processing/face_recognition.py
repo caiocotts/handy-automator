@@ -22,7 +22,8 @@ last_auth_time = 0
 
 
 known_embeddings = {}  # name -> embedding
-tracked_faces = []
+auth_tokens = {}       # UserID -> Token String
+tracked_faces = []     # ((x, y, w, h), "git")
 
 #TODO remove when embeddings are on db and replace with this:
 #known_embeddings = face_embeddings.get_faces()

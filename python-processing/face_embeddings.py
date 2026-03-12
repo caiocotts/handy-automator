@@ -14,29 +14,45 @@ def get_faces_old() -> dict:
     Loads embeddings from individual files. If files don't exist, creates them from images.
     '''
     known_embeddings = {}
-    if not os.path.exists(AUTH_DIR):
-        return known_embeddings
+    
+    # Check EMBEDDINGS_DIR first to load pre-calculated embeddings
+    if os.path.exists(EMBEDDINGS_DIR):
+        for file in os.listdir(EMBEDDINGS_DIR):
+            if file.lower().endswith(".npy"):
+                name = os.path.splitext(file)[0]
+                embedding_path = os.path.join(EMBEDDINGS_DIR, file)
+                try:
+                    known_embeddings[name] = np.load(embedding_path)
+                    print(f"Loaded existing embedding for {name}")
+                except Exception as e:
+                    print(f"Error loading embedding for {name}: {e}")
 
-    for file in os.listdir(AUTH_DIR):
-        if file.lower().endswith((".jpg", ".png", ".jpeg")):
-            name = os.path.splitext(file)[0]
-            embedding_path = os.path.join(EMBEDDINGS_DIR, f"{name}.npy")
-
-            if os.path.exists(embedding_path):
-                known_embeddings[name] = np.load(embedding_path)
-                print(f"Loaded existing embedding for {name}")
-            else:
-                path = os.path.join(AUTH_DIR, file)
-                embedding = DeepFace.represent(
-                    img_path=path,
-                    model_name="ArcFace",
-                    detector_backend="retinaface",
-                    enforce_detection=True
-                )[0]["embedding"]
+    # Then check AUTH_DIR for any new images that don't have embeddings yet
+    if os.path.exists(AUTH_DIR):
+        for file in os.listdir(AUTH_DIR):
+            if file.lower().endswith((".jpg", ".png", ".jpeg")):
+                name = os.path.splitext(file)[0]
                 
-                np.save(embedding_path, embedding)
-                known_embeddings[name] = embedding
-                print(f"Created and loaded embedding for {name}")
+                # Skip if we already loaded an embedding for this user
+                if name in known_embeddings:
+                    continue
+
+                path = os.path.join(AUTH_DIR, file)
+                embedding_path = os.path.join(EMBEDDINGS_DIR, f"{name}.npy")
+                
+                try:
+                    embedding = DeepFace.represent(
+                        img_path=path,
+                        model_name="ArcFace",
+                        detector_backend="retinaface",
+                        enforce_detection=True
+                    )[0]["embedding"]
+                    
+                    np.save(embedding_path, embedding)
+                    known_embeddings[name] = embedding
+                    print(f"Created and loaded embedding for {name}")
+                except Exception as e:
+                    print(f"Error creating embedding for {name}: {e}")
     
     if not known_embeddings:
         print(f"There are no images/embeddings in the database")
