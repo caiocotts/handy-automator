@@ -17,11 +17,8 @@ CHECK_INTERVAL = 1.0      # Seconds between recognition checks
 THRESHOLD = 0.6           # Cosine similarity threshold
 AUTH_LOCK_TIME = 7.0      # Lock duration after success
 
-authenticated = False
-last_auth_time = 0     
-
-
 known_embeddings = {}  # name -> embedding
+auth_times = {}        # name -> last authentication timestamp
 auth_tokens = {}       # UserID -> Token String
 tracked_faces = []     # ((x, y, w, h), "git")
 
@@ -45,19 +42,22 @@ def detecting_bounding_box(frame):
         - A list containing bounding box coordinates (x, y, w, h) paired 
           with the detected or recognized name.
     """
-    global last_check, authenticated, last_auth_time, tracked_faces
-
-    if authenticated and time.time() - last_auth_time < AUTH_LOCK_TIME:
-            cv2.putText(frame, "AUTHORIZED",
-                        (20, 40), cv2.FONT_HERSHEY_SIMPLEX,
-                        1, (0, 255, 0), 2)
-    else:
-        authenticated = False
+    global last_check, tracked_faces, auth_times
     
     gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
     faces = face_classifier.detectMultiScale(gray, 1.05, 5, minSize=(100, 100))
 
     current_time = time.time()
+
+    # Create a temporary list for tracking logic, resetting names to "Unknown"
+    # if their authentication lock time has expired.
+    unexpired_tracked_faces = []
+    for box, name in tracked_faces:
+        if name != "Unknown" and current_time - auth_times.get(name, 0) > AUTH_LOCK_TIME:
+            unexpired_tracked_faces.append((box, "Unknown"))
+        else:
+            unexpired_tracked_faces.append((box, name))
+
     current_tracked = []
     
     for (x, y, w, h) in faces:
@@ -65,7 +65,7 @@ def detecting_bounding_box(frame):
         detected_name = "Unknown"
 
         cx, cy = x + w/2, y + h/2
-        for t_box, t_name in tracked_faces:
+        for t_box, t_name in unexpired_tracked_faces:
             tx, ty, tw, th = t_box
             tcx, tcy = tx + tw/2, ty + th/2
             # If the center of the face hasn't moved much, assume it's the same person
@@ -75,10 +75,12 @@ def detecting_bounding_box(frame):
 
         # Run DeepFace recognition if the interval has passed
         if current_time - last_check > CHECK_INTERVAL:
-            face_crop = frame[y:y+h, x:x+w]
-            match = authorize(face_crop)
-            if match:
-                detected_name = match
+            # To be efficient, only run full recognition on unknown faces
+            if detected_name == "Unknown":
+                face_crop = frame[y:y+h, x:x+w]
+                match = authorize(face_crop)
+                if match:
+                    detected_name = match
                 
         # Store the result for this frame
         current_tracked.append(((x, y, w, h), detected_name))
@@ -104,10 +106,12 @@ def authorize(face_img):
         - The name of the authenticated individual if a match is found,
           otherwise None.
     """
+    global auth_times
     match = check_faces(face_img)
     if match:
         print("Authorized:", match)
-        return match # Return the matched name
+        auth_times[match] = time.time()
+        return match
     else:
         print("Unknown face")
         return None
@@ -126,7 +130,6 @@ def check_faces(face_img):
         - The name of the matched individual if authentication succeeds,
           otherwise None.
     """
-    global authenticated, last_auth_time
 
     try:
         live_embedding = DeepFace.represent(
@@ -142,8 +145,6 @@ def check_faces(face_img):
         distance = cosine(ref_embedding, live_embedding)
 
         if distance < THRESHOLD:
-            authenticated = True
-            last_auth_time = time.time()
             return name
 
     return None
@@ -158,4 +159,3 @@ def is_authenticated_user_present():
         if name != "Unknown":
             return True
     return False
-
