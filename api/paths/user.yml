@@ -1,6 +1,7 @@
 post:
   summary: Register new user
   operationId: createUser
+  description: Register a new user onto the system. Usernames must be unique!
   requestBody:
     required: true
     content:
