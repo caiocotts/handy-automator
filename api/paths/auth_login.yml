@@ -1,6 +1,7 @@
 post:
   summary: Authenticate user
   operationId: loginUser
+  description: Authenticate a user via username and password. Logging in this way always generates a new access/refresh token pair.
   requestBody:
     required: true
     content:
@@ -47,5 +48,5 @@ post:
               - username
               - accessToken
               - refreshToken
-    '403':
-      $ref: ../components/responses/Forbidden.yml
+    '401':
+      $ref: ../components/responses/NotAuthorized.yml
