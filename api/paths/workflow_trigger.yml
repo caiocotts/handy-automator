@@ -1,0 +1,23 @@
+post:
+  operationId: triggerWorkflow
+  summary: Trigger a workflow
+  security:
+    - accessToken: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            gestureId:
+              type: string
+              description: Gesture ID
+              example: "2"
+          required:
+            - gestureId
+  responses:
+    '200':
+      description: Workflow triggered
+    '403':
+      $ref: ../components/responses/NotAuthorized.yml

@@ -1,0 +1,35 @@
+post:
+  summary: Biometrically authenticate user
+  operationId: loginUserWithFace
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            userId:
+              type: string
+              description: User Id
+              example: gZ84IFg_GsRR
+            embedding:
+              type: array
+              items:
+                type: number
+              example: [ 0.1231224263, 0.08484738439, 0.376432679245, -0.54238732864 ]
+  responses:
+    '200':
+      description: User authenticated successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            description: Access token
+            properties:
+              accessToken:
+                type: string
+                example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
+            required:
+              - accessToken
+    '401':
+      $ref: ../components/responses/NotAuthorized.yml

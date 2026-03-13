@@ -35,6 +35,14 @@ type LoginUserJSONBody struct {
 	Username string `json:"username"`
 }
 
+// LoginUserWithFaceJSONBody defines parameters for LoginUserWithFace.
+type LoginUserWithFaceJSONBody struct {
+	Embedding *[]float32 `json:"embedding,omitempty"`
+
+	// UserId User Id
+	UserId *string `json:"userId,omitempty"`
+}
+
 // CreateDeviceJSONBody defines parameters for CreateDevice.
 type CreateDeviceJSONBody struct {
 	// Ip Device IP
@@ -54,6 +62,12 @@ type CreateUserJSONBody struct {
 type CreateWorkflowJSONBody struct {
 	// Name Workflow name
 	Name string `json:"name"`
+}
+
+// TriggerWorkflowJSONBody defines parameters for TriggerWorkflow.
+type TriggerWorkflowJSONBody struct {
+	// GestureId Gesture ID
+	GestureId string `json:"gestureId"`
 }
 
 // UpdateWorkflowJSONBody defines parameters for UpdateWorkflow.
@@ -83,6 +97,9 @@ type AssociateWorkflowDevicesJSONBody struct {
 // LoginUserJSONRequestBody defines body for LoginUser for application/json ContentType.
 type LoginUserJSONRequestBody LoginUserJSONBody
 
+// LoginUserWithFaceJSONRequestBody defines body for LoginUserWithFace for application/json ContentType.
+type LoginUserWithFaceJSONRequestBody LoginUserWithFaceJSONBody
+
 // CreateDeviceJSONRequestBody defines body for CreateDevice for application/json ContentType.
 type CreateDeviceJSONRequestBody CreateDeviceJSONBody
 
@@ -91,6 +108,9 @@ type CreateUserJSONRequestBody CreateUserJSONBody
 
 // CreateWorkflowJSONRequestBody defines body for CreateWorkflow for application/json ContentType.
 type CreateWorkflowJSONRequestBody CreateWorkflowJSONBody
+
+// TriggerWorkflowJSONRequestBody defines body for TriggerWorkflow for application/json ContentType.
+type TriggerWorkflowJSONRequestBody TriggerWorkflowJSONBody
 
 // UpdateWorkflowJSONRequestBody defines body for UpdateWorkflow for application/json ContentType.
 type UpdateWorkflowJSONRequestBody UpdateWorkflowJSONBody
@@ -103,6 +123,9 @@ type ServerInterface interface {
 	// Authenticate user
 	// (POST /auth/login)
 	LoginUser(w http.ResponseWriter, r *http.Request)
+	// Biometrically authenticate user
+	// (POST /auth/login/face)
+	LoginUserWithFace(w http.ResponseWriter, r *http.Request)
 	// Issue new access token
 	// (GET /auth/refresh)
 	RefreshAccessToken(w http.ResponseWriter, r *http.Request)
@@ -133,6 +156,9 @@ type ServerInterface interface {
 	// Create a workflow
 	// (POST /workflow)
 	CreateWorkflow(w http.ResponseWriter, r *http.Request)
+	// Trigger a workflow
+	// (POST /workflow/trigger)
+	TriggerWorkflow(w http.ResponseWriter, r *http.Request)
 	// Delete workflow by ID
 	// (DELETE /workflow/{id})
 	DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string)
@@ -154,6 +180,12 @@ type Unimplemented struct{}
 // Authenticate user
 // (POST /auth/login)
 func (_ Unimplemented) LoginUser(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Biometrically authenticate user
+// (POST /auth/login/face)
+func (_ Unimplemented) LoginUserWithFace(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -217,6 +249,12 @@ func (_ Unimplemented) CreateWorkflow(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Trigger a workflow
+// (POST /workflow/trigger)
+func (_ Unimplemented) TriggerWorkflow(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Delete workflow by ID
 // (DELETE /workflow/{id})
 func (_ Unimplemented) DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string) {
@@ -255,6 +293,20 @@ func (siw *ServerInterfaceWrapper) LoginUser(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.LoginUser(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// LoginUserWithFace operation middleware
+func (siw *ServerInterfaceWrapper) LoginUserWithFace(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.LoginUserWithFace(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -476,6 +528,26 @@ func (siw *ServerInterfaceWrapper) CreateWorkflow(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateWorkflow(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// TriggerWorkflow operation middleware
+func (siw *ServerInterfaceWrapper) TriggerWorkflow(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TriggerWorkflow(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -726,6 +798,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/auth/login", wrapper.LoginUser)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/login/face", wrapper.LoginUserWithFace)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/auth/refresh", wrapper.RefreshAccessToken)
 	})
 	r.Group(func(r chi.Router) {
@@ -754,6 +829,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/workflow", wrapper.CreateWorkflow)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/workflow/trigger", wrapper.TriggerWorkflow)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/workflow/{id}", wrapper.DeleteWorkflow)
@@ -802,6 +880,33 @@ type LoginUser403Response struct {
 
 func (response LoginUser403Response) VisitLoginUserResponse(w http.ResponseWriter) error {
 	w.WriteHeader(403)
+	return nil
+}
+
+type LoginUserWithFaceRequestObject struct {
+	Body *LoginUserWithFaceJSONRequestBody
+}
+
+type LoginUserWithFaceResponseObject interface {
+	VisitLoginUserWithFaceResponse(w http.ResponseWriter) error
+}
+
+type LoginUserWithFace200JSONResponse struct {
+	AccessToken string `json:"accessToken"`
+}
+
+func (response LoginUserWithFace200JSONResponse) VisitLoginUserWithFaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LoginUserWithFace401Response struct {
+}
+
+func (response LoginUserWithFace401Response) VisitLoginUserWithFaceResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
 	return nil
 }
 
@@ -1132,6 +1237,30 @@ func (response CreateWorkflow400JSONResponse) VisitCreateWorkflowResponse(w http
 	return json.NewEncoder(w).Encode(response)
 }
 
+type TriggerWorkflowRequestObject struct {
+	Body *TriggerWorkflowJSONRequestBody
+}
+
+type TriggerWorkflowResponseObject interface {
+	VisitTriggerWorkflowResponse(w http.ResponseWriter) error
+}
+
+type TriggerWorkflow200Response struct {
+}
+
+func (response TriggerWorkflow200Response) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
+	w.WriteHeader(200)
+	return nil
+}
+
+type TriggerWorkflow403Response struct {
+}
+
+func (response TriggerWorkflow403Response) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
+	w.WriteHeader(403)
+	return nil
+}
+
 type DeleteWorkflowRequestObject struct {
 	Id string `json:"id"`
 }
@@ -1323,6 +1452,9 @@ type StrictServerInterface interface {
 	// Authenticate user
 	// (POST /auth/login)
 	LoginUser(ctx context.Context, request LoginUserRequestObject) (LoginUserResponseObject, error)
+	// Biometrically authenticate user
+	// (POST /auth/login/face)
+	LoginUserWithFace(ctx context.Context, request LoginUserWithFaceRequestObject) (LoginUserWithFaceResponseObject, error)
 	// Issue new access token
 	// (GET /auth/refresh)
 	RefreshAccessToken(ctx context.Context, request RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error)
@@ -1353,6 +1485,9 @@ type StrictServerInterface interface {
 	// Create a workflow
 	// (POST /workflow)
 	CreateWorkflow(ctx context.Context, request CreateWorkflowRequestObject) (CreateWorkflowResponseObject, error)
+	// Trigger a workflow
+	// (POST /workflow/trigger)
+	TriggerWorkflow(ctx context.Context, request TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error)
 	// Delete workflow by ID
 	// (DELETE /workflow/{id})
 	DeleteWorkflow(ctx context.Context, request DeleteWorkflowRequestObject) (DeleteWorkflowResponseObject, error)
@@ -1420,6 +1555,37 @@ func (sh *strictHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(LoginUserResponseObject); ok {
 		if err := validResponse.VisitLoginUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// LoginUserWithFace operation middleware
+func (sh *strictHandler) LoginUserWithFace(w http.ResponseWriter, r *http.Request) {
+	var request LoginUserWithFaceRequestObject
+
+	var body LoginUserWithFaceJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.LoginUserWithFace(ctx, request.(LoginUserWithFaceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "LoginUserWithFace")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(LoginUserWithFaceResponseObject); ok {
+		if err := validResponse.VisitLoginUserWithFaceResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -1694,6 +1860,37 @@ func (sh *strictHandler) CreateWorkflow(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// TriggerWorkflow operation middleware
+func (sh *strictHandler) TriggerWorkflow(w http.ResponseWriter, r *http.Request) {
+	var request TriggerWorkflowRequestObject
+
+	var body TriggerWorkflowJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TriggerWorkflow(ctx, request.(TriggerWorkflowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TriggerWorkflow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TriggerWorkflowResponseObject); ok {
+		if err := validResponse.VisitTriggerWorkflowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // DeleteWorkflow operation middleware
 func (sh *strictHandler) DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string) {
 	var request DeleteWorkflowRequestObject
@@ -1815,36 +2012,40 @@ func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"RGE2LwAA",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file
