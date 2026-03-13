@@ -56,7 +56,7 @@ func (r UserRepository) GetByUsername(ctx context.Context, username string) (mod
 	u := model.User{}
 	err := r.database.
 		QueryRowContext(ctx, `select * from "user" where username = $1`, username).
-		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken, &u.FaseEmbedding)
+		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken, &u.FaceEmbedding)
 
 	if err != nil {
 		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)

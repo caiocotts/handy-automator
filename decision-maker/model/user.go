@@ -5,5 +5,5 @@ type User struct {
 	Username      string
 	PasswordHash  string
 	RefreshToken  *string
-	FaseEmbedding *[]float64
+	FaceEmbedding *[]float64
 }
