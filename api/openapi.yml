@@ -14,6 +14,8 @@ paths:
     $ref: paths/user_{id}.yml
   /auth/login:
     $ref: paths/auth_login.yml
+  /auth/login/face:
+    $ref: paths/auth_login_face.yml
   /auth/refresh:
     $ref: paths/auth_refresh.yml
   /device:
@@ -22,6 +24,8 @@ paths:
     $ref: paths/device_{id}.yml
   /workflow:
     $ref: paths/workflow.yml
+  /workflow/trigger:
+    $ref: paths/workflow_trigger.yml
   /workflow/{id}:
     $ref: paths/workflow_{id}.yml
   /workflow/{id}/devices:
