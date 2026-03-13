@@ -1,6 +1,7 @@
 get:
   summary: Get all workflows
   operationId: getWorkflows
+  description: Get a list of all workflows in the system.
   security:
     - accessToken: [ ]
   responses:
@@ -16,6 +17,7 @@ get:
 post:
   summary: Create a workflow
   operationId: createWorkflow
+  description: Create a new workflow. For adding devices to the workflow see <a href=#operation/associateWorkflowDevices>associateWorkflowDevices</a>.
   security:
     - accessToken: [ ]
   requestBody:
