@@ -1,8 +1,9 @@
 package model
 
 type User struct {
-	Id           string
-	Username     string
-	PasswordHash string
-	RefreshToken *string
+	Id            string
+	Username      string
+	PasswordHash  string
+	RefreshToken  *string
+	FaseEmbedding *[]float64
 }
