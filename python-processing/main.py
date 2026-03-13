@@ -6,6 +6,7 @@ import pose as pr
 import mediapipe as mp
 import time
 import config
+import api_interface as api
 
 
 pr_model_path = './pose_landmarker_full.task' 
@@ -31,6 +32,7 @@ def main():
 
             # 1. Run face detection first to check for authorized users
             face_data = fr.detecting_bounding_box(frame)
+            api.send_embeddings("Alfred")
 
             # Only run gesture/pose detection if an authenticated user is present
             if fr.is_authenticated_user_present():
@@ -41,6 +43,7 @@ def main():
                 # 2. Run gesture and pose detections
                 gesture_rec.recognize_async(mp_image, timestamp)
                 pose_rec.detect_async(mp_image, timestamp)
+
 
                 # 3. Check for Pose Landmarks
                 if pr.latest_pose_result:

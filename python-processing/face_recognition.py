@@ -1,7 +1,7 @@
 import cv2
 from deepface import DeepFace
 import time
-from scipy.spatial.distance import cosine
+from scipy.spatial  .distance import cosine
 import mediapipe as mp
 import math
 import face_embeddings as fe
@@ -23,6 +23,9 @@ last_auth_time = 0
 
 known_embeddings = {}  # name -> embedding
 tracked_faces = []
+
+
+live_embedding = None
 
 #TODO remove when embeddings are on db and replace with this:
 #known_embeddings = face_embeddings.get_faces()
@@ -111,7 +114,6 @@ def authorize(face_img):
         print("Unknown face")
         return None
 
-
 def check_faces(face_img):
     """
     Generates a facial embedding from the provided face image and
@@ -128,7 +130,8 @@ def check_faces(face_img):
     global authenticated, last_auth_time
 
     try:
-        live_embedding = DeepFace.represent(
+        global live_embedding
+        live_embedding= DeepFace.represent(
             img_path=face_img,
             model_name="ArcFace",
             detector_backend="opencv",

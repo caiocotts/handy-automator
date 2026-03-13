@@ -30,13 +30,16 @@ latest_result = None # This will be the one to be accessed when you want the cla
 """
 This variable will serve as the container for the classified gesture
 
-    -> gestures: List[List[category_module.Category]] 
+    - gestures: List[List[category_module.Category]] 
         -> category_module.Category: [str: category_name, float: score, int: index]
-    -> handedness: List[List[category_module.Category]] (similar)
+        
+    - handedness: List[List[category_module.Category]] (similar)
         -> category_module.Category: [str: category_name, float: score, int: index]
-    -> hand_landmarks: List[List[landmark_module.NormalizedLandmark]]
+
+    - hand_landmarks: List[List[landmark_module.NormalizedLandmark]]
         -> landmark_module.NormalizedLandmark: [float: x, float: y, float: z]
-    -> hand_world_landmarks: List[List[landmark_module.Landmark]]
+
+    - hand_world_landmarks: List[List[landmark_module.Landmark]]
         -> landmark_module.Landmark: [float: x, float: y, float: z]
 
 """
@@ -61,7 +64,7 @@ def update_result(result: GestureRecognizerResult, output_image: mp.Image, times
     global latest_result
     latest_result = result
 
-
+    
 options = GestureRecognizerOptions( 
     base_options=BaseOptions(model_asset_path=model_path), # finds which model to use (hand_landmarker.task)
     running_mode=VisionRunningMode.LIVE_STREAM, # whether an image, video, or live-stream (can only use detect_async() if live stream)
