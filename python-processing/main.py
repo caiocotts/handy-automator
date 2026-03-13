@@ -42,14 +42,12 @@ def main():
                 username = face_data[0][1]
                 if username not in fr.auth_tokens and username in fr.known_embeddings:
 
-            
                     embedding = fr.known_embeddings[username]
                     embedding = embedding.tolist()
                     
                     #REMOVE WHEN ENDPOINT IS READY
-
-                    # auth_token = api.auth_user_api_call(embedding, username)
-                    auth_token = api.ping()
+                    print(embedding,username)
+                    auth_token = api.auth_user_api_call(embedding, username)
                     print(f'auth token generated')
                     if auth_token:
                         # Store the token
