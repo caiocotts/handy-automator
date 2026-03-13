@@ -1,6 +1,7 @@
 post:
   summary: Biometrically authenticate user
   operationId: loginUserWithFace
+  description: Authenticate a user via face embedding. Logging in this way does not generate a refresh token as the session only exists for a couple of seconds.
   requestBody:
     required: true
     content:
@@ -17,6 +18,9 @@ post:
               items:
                 type: number
               example: [ 0.1231224263, 0.08484738439, 0.376432679245, -0.54238732864 ]
+          required:
+            - userId
+            - embedding
   responses:
     '200':
       description: User authenticated successfully

@@ -1,6 +1,7 @@
 get:
   summary: Get all devices
   operationId: getDevices
+  description: Get a list of all edge devices on the network.
   security:
     - accessToken: [ ]
   responses:
@@ -16,6 +17,7 @@ get:
 post:
   summary: Create a device
   operationId: createDevice
+  description: Register a new device onto the system. (This should be used by edge devices who wish to publish their IPs)
   security:
     - accessToken: [ ]
   requestBody:

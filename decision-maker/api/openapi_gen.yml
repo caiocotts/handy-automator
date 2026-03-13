@@ -10,6 +10,7 @@ paths:
     get:
       summary: Check Decision Maker's status
       operationId: ping
+      description: Use this endpoint as a tester for your client implementation.
       responses:
         '200':
           description: Decision Maker is up and running
@@ -27,6 +28,7 @@ paths:
     post:
       summary: Register new user
       operationId: createUser
+      description: Register a new user onto the system. Usernames must be unique!
       requestBody:
         required: true
         content:
@@ -58,6 +60,7 @@ paths:
     delete:
       summary: Delete user by ID
       operationId: deleteUser
+      description: Delete the user matching the given ID.
       security:
         - accessToken: []
       parameters:
@@ -76,6 +79,7 @@ paths:
     post:
       summary: Authenticate user
       operationId: loginUser
+      description: Authenticate a user via username and password. Logging in this way always generates a new access/refresh token pair.
       requestBody:
         required: true
         content:
@@ -122,12 +126,13 @@ paths:
                   - username
                   - accessToken
                   - refreshToken
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
   /auth/login/face:
     post:
       summary: Biometrically authenticate user
       operationId: loginUserWithFace
+      description: Authenticate a user via face embedding. Logging in this way does not generate a refresh token as the session only exists for a couple of seconds.
       requestBody:
         required: true
         content:
@@ -148,6 +153,9 @@ paths:
                     - 0.08484738439
                     - 0.376432679245
                     - -0.54238732864
+              required:
+                - userId
+                - embedding
       responses:
         '200':
           description: User authenticated successfully
@@ -168,6 +176,7 @@ paths:
     get:
       summary: Issue new access token
       operationId: refreshAccessToken
+      description: Generate a new access token by using a refresh token.
       security:
         - refreshToken: []
       responses:
@@ -190,6 +199,7 @@ paths:
     get:
       summary: Get all devices
       operationId: getDevices
+      description: Get a list of all edge devices on the network.
       security:
         - accessToken: []
       responses:
@@ -205,6 +215,7 @@ paths:
     post:
       summary: Create a device
       operationId: createDevice
+      description: Register a new device onto the system. (This should be used by edge devices who wish to publish their IPs)
       security:
         - accessToken: []
       requestBody:
@@ -233,6 +244,7 @@ paths:
     get:
       summary: Get device by ID
       operationId: getDevice
+      description: Get information relating to the device matching the given ID.
       security:
         - accessToken: []
       parameters:
@@ -254,6 +266,7 @@ paths:
     delete:
       summary: Delete device by ID
       operationId: deleteDevice
+      description: Delete the device matching the given ID.
       security:
         - accessToken: []
       parameters:
@@ -272,6 +285,7 @@ paths:
     get:
       summary: Get all workflows
       operationId: getWorkflows
+      description: Get a list of all workflows in the system.
       security:
         - accessToken: []
       responses:
@@ -287,6 +301,7 @@ paths:
     post:
       summary: Create a workflow
       operationId: createWorkflow
+      description: Create a new workflow. For adding devices to the workflow see <a href=#operation/associateWorkflowDevices>associateWorkflowDevices</a>.
       security:
         - accessToken: []
       requestBody:
@@ -313,8 +328,9 @@ paths:
           $ref: '#/components/responses/BadRequest'
   /workflow/trigger:
     post:
-      operationId: triggerWorkflow
       summary: Trigger a workflow
+      operationId: triggerWorkflow
+      description: Trigger the workflow corresponding to the given hand gesture, for the currently authenticated user.
       security:
         - accessToken: []
       requestBody:
@@ -333,12 +349,13 @@ paths:
       responses:
         '200':
           description: Workflow triggered
-        '403':
+        '401':
           $ref: '#/components/responses/NotAuthorized'
   /workflow/{id}:
     get:
       summary: Get workflow by ID
       operationId: getWorkflow
+      description: Get information relating to the workflow matching the given ID.
       security:
         - accessToken: []
       parameters:
@@ -360,6 +377,7 @@ paths:
     delete:
       summary: Delete workflow by ID
       operationId: deleteWorkflow
+      description: Delete the workflow matching the given ID.
       security:
         - accessToken: []
       parameters:
@@ -377,6 +395,7 @@ paths:
     patch:
       summary: Update workflow
       operationId: updateWorkflow
+      description: Update workflow information. For adding devices to the workflow see <a href=#operation/associateWorkflowDevices>associateWorkflowDevices</a>.
       security:
         - accessToken: []
       parameters:
@@ -411,6 +430,7 @@ paths:
     put:
       summary: Associate devices to a workflow
       operationId: associateWorkflowDevices
+      description: Associate new devices to a workflow. The request body should contain all devices which should be part of the workflow matching the given id. You may also use this endpoint for removing devices from the workflow, by simply ommiting them from the request body. That is to say, if a workflow contains devices 1, 2, and 3, by using this endpoint with only devices 1 and 3, the workflow will now contain only devices 1 and 3.
       security:
         - accessToken: []
       parameters:
@@ -427,16 +447,36 @@ paths:
             schema:
               properties:
                 devices:
-                  $ref: '#/components/schemas/DeviceList'
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      id:
+                        type: string
+                        description: Device ID
+                        example: pXkHij_kJjXh
+                    required:
+                      - id
+              required:
+                - devices
       responses:
-        '201':
+        '200':
           description: Device associated to workflow successfully
           content:
             application/json:
               schema:
                 properties:
                   devices:
-                    $ref: '#/components/schemas/DeviceList'
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                          description: Device ID
+                          example: pXkHij_kJjXh
+                      required:
+                        - id
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
@@ -557,7 +597,7 @@ components:
                 example: unable to find requested record
             required:
               - message
-    Forbidden:
-      description: Forbidden
     NotAuthorized:
       description: Not Authorized
+    Forbidden:
+      description: Forbidden

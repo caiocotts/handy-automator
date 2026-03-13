@@ -1,6 +1,7 @@
 get:
   summary: Get device by ID
   operationId: getDevice
+  description: Get information relating to the device matching the given ID.
   security:
     - accessToken: [ ]
   parameters:
@@ -22,6 +23,7 @@ get:
 delete:
   summary: Delete device by ID
   operationId: deleteDevice
+  description: Delete the device matching the given ID.
   security:
     - accessToken: [ ]
   parameters:

@@ -1,6 +1,7 @@
 get:
   summary: Check Decision Maker's status
   operationId: ping
+  description: Use this endpoint as a tester for your client implementation.
   responses:
     '200':
       description: Decision Maker is up and running

@@ -1,6 +1,7 @@
 delete:
   summary: Delete user by ID
   operationId: deleteUser
+  description: Delete the user matching the given ID.
   security:
     - accessToken: [ ]
   parameters:

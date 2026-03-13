@@ -1,6 +1,7 @@
 get:
   summary: Issue new access token
   operationId: refreshAccessToken
+  description: Generate a new access token by using a refresh token.
   security:
     - refreshToken: []
   responses:
