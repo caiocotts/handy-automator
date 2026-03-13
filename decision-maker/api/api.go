@@ -76,6 +76,11 @@ func (s Server) LoginUser(ctx context.Context, request LoginUserRequestObject) (
 	}, nil
 }
 
+func (s Server) LoginUserWithFace(ctx context.Context, request LoginUserWithFaceRequestObject) (LoginUserWithFaceResponseObject, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (s Server) RefreshAccessToken(ctx context.Context, _ RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error) {
 	at, err := s.authService.Refresh(ctx)
 	if err != nil {
@@ -253,6 +258,11 @@ func (s Server) DeleteWorkflow(context.Context, DeleteWorkflowRequestObject) (De
 }
 
 func (s Server) AssociateWorkflowDevices(context.Context, AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
+func (s Server) TriggerWorkflow(ctx context.Context, request TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error) {
 	//TODO implement me
 	panic("implement me")
 }
