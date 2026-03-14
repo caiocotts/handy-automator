@@ -48,8 +48,9 @@ def get_faces_old() -> dict:
                         enforce_detection=True
                     )[0]["embedding"]
                     
-                    np.save(embedding_path, embedding)
-                    known_embeddings[name] = embedding
+                    embedding_np = np.array(embedding)
+                    np.save(embedding_path, embedding_np)
+                    known_embeddings[name] = embedding_np    
                     print(f"Created and loaded embedding for {name}")
                 except Exception as e:
                     print(f"Error creating embedding for {name}: {e}")
