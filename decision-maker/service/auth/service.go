@@ -78,6 +78,10 @@ func (s Service) Refresh(ctx context.Context) (string, error) {
 	}
 
 	t, err := createJWT(uid, time.Now().Add(time.Hour*2))
+	if err != nil {
+		return "", err
+	}
+
 	accessToken, err := signJWT(t)
 	if err != nil {
 		return "", err
