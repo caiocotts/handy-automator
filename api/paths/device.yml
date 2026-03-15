@@ -14,6 +14,8 @@ get:
             properties:
               devices:
                 $ref: ../components/schemas/DeviceList.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
 post:
   summary: Create a device
   operationId: createDevice
@@ -42,3 +44,5 @@ post:
             $ref: ../components/schemas/Device.yml
     '400':
       $ref: ../components/responses/BadRequest.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

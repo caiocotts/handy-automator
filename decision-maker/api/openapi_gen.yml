@@ -56,6 +56,8 @@ paths:
                 $ref: '#/components/schemas/User'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /user/{id}:
     delete:
       summary: Delete user by ID
@@ -75,6 +77,8 @@ paths:
           description: User record successfully deleted
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /auth/login:
     post:
       summary: Authenticate user
@@ -128,6 +132,8 @@ paths:
                   - refreshToken
         '401':
           $ref: '#/components/responses/NotAuthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /auth/login/face:
     post:
       summary: Biometrically authenticate user
@@ -193,8 +199,10 @@ paths:
                     example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
                 required:
                   - accessToken
-        '403':
-          $ref: '#/components/responses/Forbidden'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /device:
     get:
       summary: Get all devices
@@ -212,6 +220,8 @@ paths:
                 properties:
                   devices:
                     $ref: '#/components/schemas/DeviceList'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     post:
       summary: Create a device
       operationId: createDevice
@@ -240,6 +250,8 @@ paths:
                 $ref: '#/components/schemas/Device'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /device/{id}:
     get:
       summary: Get device by ID
@@ -263,6 +275,8 @@ paths:
                 $ref: '#/components/schemas/Device'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       summary: Delete device by ID
       operationId: deleteDevice
@@ -281,6 +295,8 @@ paths:
           description: Device record successfully deleted
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /workflow:
     get:
       summary: Get all workflows
@@ -298,6 +314,8 @@ paths:
                 properties:
                   workflows:
                     $ref: '#/components/schemas/WorkflowList'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     post:
       summary: Create a workflow
       operationId: createWorkflow
@@ -326,6 +344,8 @@ paths:
                 $ref: '#/components/schemas/Workflow'
         '400':
           $ref: '#/components/responses/BadRequest'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /workflow/trigger:
     post:
       summary: Trigger a workflow
@@ -374,6 +394,8 @@ paths:
                 $ref: '#/components/schemas/Workflow'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
     delete:
       summary: Delete workflow by ID
       operationId: deleteWorkflow
@@ -585,6 +607,23 @@ components:
                 example: '''192.145.3.23.100'' is not a valid ip'
             required:
               - message
+    InternalServerError:
+      description: Internal Server Error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: some very specific error message
+              ref:
+                type: string
+                description: A reference code which can be used to find when the error occurred in the logs.
+                example: fHhhxG338dogGFvHtAXSH
+            required:
+              - message
+              - ref
     NotFound:
       description: Not Found
       content:
@@ -599,5 +638,3 @@ components:
               - message
     NotAuthorized:
       description: Not Authorized
-    Forbidden:
-      description: Forbidden
