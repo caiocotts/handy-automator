@@ -28,7 +28,7 @@ func (r DeviceRepository) Create(ctx context.Context, ip net.IP) (model.Device, 
 	}
 	_, err = r.database.ExecContext(ctx, `insert into "device" values ($1, $2)`, id, ip.String())
 	if err != nil {
-		return model.Device{}, err
+		return model.Device{}, persistence.ParseDBError(persistence.PostgresError, err)
 	}
 	return model.Device{
 		Id: id,
@@ -44,7 +44,7 @@ func (r DeviceRepository) Get(ctx context.Context, id string) (model.Device, err
 		return model.Device{}, persistence.ErrNotFound
 	}
 	if err != nil {
-		return model.Device{}, err
+		return model.Device{}, persistence.ParseDBError(persistence.PostgresError, err)
 	}
 	d.Ip = net.ParseIP(i)
 	return d, nil
@@ -53,7 +53,7 @@ func (r DeviceRepository) Get(ctx context.Context, id string) (model.Device, err
 func (r DeviceRepository) GetAll(ctx context.Context) ([]model.Device, error) {
 	rows, err := r.database.QueryContext(ctx, `select * from "device"`)
 	if err != nil {
-		return nil, err
+		return nil, persistence.ParseDBError(persistence.PostgresError, err)
 	}
 	defer rows.Close()
 	var devices []model.Device
@@ -61,13 +61,13 @@ func (r DeviceRepository) GetAll(ctx context.Context) ([]model.Device, error) {
 		var d model.Device
 		var i string
 		if err := rows.Scan(&d.Id, &i, &d.Name, &d.Type); err != nil {
-			return nil, err
+			return nil, persistence.ParseDBError(persistence.PostgresError, err)
 		}
 		d.Ip = net.ParseIP(i)
 		devices = append(devices, d)
 	}
 	if err = rows.Err(); err != nil {
-		return devices, err
+		return devices, persistence.ParseDBError(persistence.PostgresError, err)
 	}
 	return devices, nil
 }
@@ -80,7 +80,7 @@ func (r DeviceRepository) Update() (model.Device, error) {
 func (r DeviceRepository) Delete(ctx context.Context, id string) error {
 	res, err := r.database.ExecContext(ctx, `delete from device where id = $1`, id)
 	if err != nil {
-		return err
+		return persistence.ParseDBError(persistence.PostgresError, err)
 	}
 	if n, _ := res.RowsAffected(); n == 0 {
 		return persistence.ErrNotFound

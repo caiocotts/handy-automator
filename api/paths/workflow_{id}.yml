@@ -20,6 +20,8 @@ get:
             $ref: ../components/schemas/Workflow.yml
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
 delete:
   summary: Delete workflow by ID
   operationId: deleteWorkflow

@@ -23,9 +23,14 @@ func (s Service) Register(ctx context.Context, username, password string) (model
 	if len(password) > 72 {
 		return model.User{}, ErrPasswordTooLong
 	}
-	return s.userRepository.Create(ctx, username, password)
+	u, err := s.userRepository.Create(ctx, username, password)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	return u, nil
 }
 
-func (s Service) Delete(ctx context.Context, id string) error { // TODO this should cascade delete all records whose FK is this user id
+func (s Service) Delete(ctx context.Context, id string) error {
 	return s.userRepository.Delete(ctx, id)
 }

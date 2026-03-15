@@ -29,3 +29,5 @@ post:
             $ref: ../components/schemas/User.yml
     '400':
       $ref: ../components/responses/BadRequest.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
