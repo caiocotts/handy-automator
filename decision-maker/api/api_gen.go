@@ -873,6 +873,20 @@ func (response LoginUser401Response) VisitLoginUserResponse(w http.ResponseWrite
 	return nil
 }
 
+type LoginUser500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response LoginUser500JSONResponse) VisitLoginUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type LoginUserWithFaceRequestObject struct {
 	Body *LoginUserWithFaceJSONRequestBody
 }
@@ -919,12 +933,26 @@ func (response RefreshAccessToken200JSONResponse) VisitRefreshAccessTokenRespons
 	return json.NewEncoder(w).Encode(response)
 }
 
-type RefreshAccessToken403Response struct {
+type RefreshAccessToken401Response struct {
 }
 
-func (response RefreshAccessToken403Response) VisitRefreshAccessTokenResponse(w http.ResponseWriter) error {
-	w.WriteHeader(403)
+func (response RefreshAccessToken401Response) VisitRefreshAccessTokenResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
 	return nil
+}
+
+type RefreshAccessToken500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response RefreshAccessToken500JSONResponse) VisitRefreshAccessTokenResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
 }
 
 type GetDevicesRequestObject struct {
@@ -954,6 +982,20 @@ type GetDevices200JSONResponse struct {
 func (response GetDevices200JSONResponse) VisitGetDevicesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetDevices500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response GetDevices500JSONResponse) VisitGetDevicesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -998,6 +1040,20 @@ func (response CreateDevice400JSONResponse) VisitCreateDeviceResponse(w http.Res
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CreateDevice500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response CreateDevice500JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteDeviceRequestObject struct {
 	Id string `json:"id"`
 }
@@ -1021,6 +1077,20 @@ type DeleteDevice404JSONResponse struct {
 func (response DeleteDevice404JSONResponse) VisitDeleteDeviceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteDevice500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response DeleteDevice500JSONResponse) VisitDeleteDeviceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1061,6 +1131,20 @@ type GetDevice404JSONResponse struct {
 func (response GetDevice404JSONResponse) VisitGetDeviceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetDevice500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response GetDevice500JSONResponse) VisitGetDeviceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1117,6 +1201,20 @@ func (response CreateUser400JSONResponse) VisitCreateUserResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CreateUser500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response CreateUser500JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteUserRequestObject struct {
 	Id string `json:"id"`
 }
@@ -1140,6 +1238,20 @@ type DeleteUser404JSONResponse struct {
 func (response DeleteUser404JSONResponse) VisitDeleteUserResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type DeleteUser500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response DeleteUser500JSONResponse) VisitDeleteUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1177,6 +1289,20 @@ type GetWorkflows200JSONResponse struct {
 func (response GetWorkflows200JSONResponse) VisitGetWorkflowsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetWorkflows500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response GetWorkflows500JSONResponse) VisitGetWorkflowsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1223,6 +1349,20 @@ type CreateWorkflow400JSONResponse struct {
 func (response CreateWorkflow400JSONResponse) VisitCreateWorkflowResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateWorkflow500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response CreateWorkflow500JSONResponse) VisitCreateWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1320,6 +1460,20 @@ type GetWorkflow404JSONResponse struct {
 func (response GetWorkflow404JSONResponse) VisitGetWorkflowResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetWorkflow500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response GetWorkflow500JSONResponse) VisitGetWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1992,50 +2146,52 @@ func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
-	"/7jgXATyNwAA",
+	"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",
+	"NwAA//8h3ft40jwAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

@@ -3,7 +3,7 @@ get:
   operationId: refreshAccessToken
   description: Generate a new access token by using a refresh token.
   security:
-    - refreshToken: []
+    - refreshToken: [ ]
   responses:
     '200':
       description: New access token issued successfully
@@ -18,5 +18,7 @@ get:
                 example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiYWRtaW4iOnRydWUsImlhdCI6MTUxNjIzOTAyMn0.KMUFsIDTnFmyG3nMiGM6H9FNFUROf3wh7SmqJp-QV30
             required:
               - accessToken
-    '403':
-      $ref: ../components/responses/Forbidden.yml
+    '401':
+      $ref: ../components/responses/NotAuthorized.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

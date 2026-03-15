@@ -30,14 +30,16 @@ func (r UserRepository) Create(ctx context.Context, username, password string) (
 	if err != nil {
 		return model.User{}, err
 	}
+
 	_, err = r.database.ExecContext(ctx, `insert into "user" values ($1, $2, $3)`, id, username, string(h))
 	if err != nil {
 		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)
 	}
+
 	return model.User{
 		Id:       id,
 		Username: username,
-	}, err
+	}, nil
 }
 
 func (r UserRepository) Get(ctx context.Context, id string) (model.User, error) {
@@ -49,6 +51,7 @@ func (r UserRepository) Get(ctx context.Context, id string) (model.User, error) 
 	if err != nil {
 		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)
 	}
+
 	return u, nil
 }
 
@@ -61,6 +64,7 @@ func (r UserRepository) GetByUsername(ctx context.Context, username string) (mod
 	if err != nil {
 		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)
 	}
+
 	return u, nil
 }
 
@@ -77,7 +81,7 @@ where id = $2;
 	return nil
 }
 
-func (r UserRepository) Delete(ctx context.Context, id string) error {
+func (r UserRepository) Delete(ctx context.Context, id string) error { // TODO this should cascade delete all records whose FK is this user id
 	res, err := r.database.ExecContext(ctx, `delete from "user" where id = $1`, id)
 	if err != nil {
 		return persistence.ParseDBError(persistence.PostgresError, err)

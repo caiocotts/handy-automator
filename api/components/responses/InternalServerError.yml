@@ -1,0 +1,16 @@
+description: Internal Server Error
+content:
+  application/json:
+    schema:
+      type: object
+      properties:
+        message:
+          type: string
+          example: some very specific error message
+        ref:
+          type: string
+          description: A reference code which can be used to find when the error occurred in the logs.
+          example: fHhhxG338dogGFvHtAXSH
+      required:
+        - message
+        - ref

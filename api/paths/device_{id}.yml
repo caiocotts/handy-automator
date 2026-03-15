@@ -20,6 +20,8 @@ get:
             $ref: ../components/schemas/Device.yml
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
 delete:
   summary: Delete device by ID
   operationId: deleteDevice
@@ -38,3 +40,5 @@ delete:
       description: Device record successfully deleted
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
