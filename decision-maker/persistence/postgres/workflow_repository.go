@@ -26,7 +26,7 @@ func (r WorkflowRepository) Create(ctx context.Context, name, userId string) (mo
 	}
 	_, err = r.database.ExecContext(ctx, `insert into "workflow" values ($1, $2, $3)`, id, name, userId)
 	if err != nil {
-		return model.Workflow{}, persistence.ParseDBError(persistence.PostgresError, err)
+		return model.Workflow{}, persistence.ParseDBError(err)
 	}
 	return model.Workflow{
 		Id:     id,
@@ -43,7 +43,7 @@ func (r WorkflowRepository) Get(ctx context.Context, id string) (model.Workflow,
 		Scan(&w.Id, &w.Name)
 
 	if err != nil {
-		return model.Workflow{}, persistence.ParseDBError(persistence.PostgresError, err)
+		return model.Workflow{}, persistence.ParseDBError(err)
 	}
 
 	return w, nil
@@ -52,14 +52,14 @@ func (r WorkflowRepository) Get(ctx context.Context, id string) (model.Workflow,
 func (r WorkflowRepository) GetAll(ctx context.Context) ([]model.Workflow, error) {
 	rows, err := r.database.QueryContext(ctx, `select * from "workflow"`)
 	if err != nil {
-		return nil, persistence.ParseDBError(persistence.PostgresError, err)
+		return nil, persistence.ParseDBError(err)
 	}
 	defer rows.Close()
 	var workflows []model.Workflow
 	for rows.Next() {
 		var w model.Workflow
 		if err := rows.Scan(&w.Id, &w.Name, &w.UserId); err != nil {
-			return nil, persistence.ParseDBError(persistence.PostgresError, err)
+			return nil, persistence.ParseDBError(err)
 		}
 		workflows = append(workflows, w)
 	}
