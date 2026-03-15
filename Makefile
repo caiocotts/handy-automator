@@ -9,7 +9,7 @@ dev: ##@Development Start handy-automator in development mode
 	@docker compose up development
 .PHONY: dev
 
-gen-api: ##@Development Generate API code from the OpenAPI spec
+gen-api: lint-api ##@Development Generate API code from the OpenAPI spec
 	@$(RUN) go generate ./api/...
 .PHONY: gen-api
 
