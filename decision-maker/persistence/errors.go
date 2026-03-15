@@ -35,5 +35,5 @@ func parsePostgresError(err error) error {
 	if errors.Is(err, sql.ErrNoRows) {
 		return ErrNotFound
 	}
-	return nil
+	return err
 }
