@@ -16,3 +16,5 @@ delete:
       description: User record successfully deleted
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

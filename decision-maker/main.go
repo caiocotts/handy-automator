@@ -40,7 +40,7 @@ func main() {
 
 	router := chi.NewMux()
 	router.Use(middleware.Logger)
-	router.Use(api.JWTAuthMiddleware(authService.ValidateAccessToken))
+	router.Use(api.JWTAuthMiddleware(authService.ValidateToken))
 
 	router.Get(consts.APIBaseUrl+"/docs", func(w http.ResponseWriter, _ *http.Request) {
 		_, err := w.Write(api.Docs)

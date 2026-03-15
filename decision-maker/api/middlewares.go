@@ -25,14 +25,18 @@ func JWTAuthMiddleware(validateToken func(token string) (string, error)) func(ht
 
 			auth := r.Header.Get("Authorization")
 			if !strings.HasPrefix(auth, "Bearer ") {
-				http.Error(w, `{"message":"missing or invalid authorization header"}`, http.StatusUnauthorized)
+				w.Header().Add("Content-Type", "application/json")
+				w.WriteHeader(http.StatusUnauthorized)
+				fmt.Fprintf(w, `{"message":"missing or invalid authorization header"}`)
 				return
 			}
 
 			token := strings.TrimPrefix(auth, "Bearer ")
 			uid, err := validateToken(token)
 			if err != nil {
-				http.Error(w, `{"message":"invalid or expired token"}`, http.StatusUnauthorized)
+				w.Header().Add("Content-Type", "application/json")
+				w.WriteHeader(http.StatusUnauthorized)
+				fmt.Fprintf(w, `{"message":"invalid or expired token"}`)
 				return
 			}
 

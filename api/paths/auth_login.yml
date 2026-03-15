@@ -50,3 +50,5 @@ post:
               - refreshToken
     '401':
       $ref: ../components/responses/NotAuthorized.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
