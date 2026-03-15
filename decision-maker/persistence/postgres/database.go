@@ -13,5 +13,11 @@ var GetInstance = sync.OnceValues(func() (*sql.DB, error) {
 	if err != nil {
 		return nil, err
 	}
-	return db, db.Ping()
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 })
