@@ -23,7 +23,7 @@ func main() {
 
 	db, err := postgres.GetInstance()
 	if err != nil {
-		log.Fatal("error: connecting to database", err)
+		log.Fatal("error: unable to connect to database: ", err)
 	}
 
 	// dep injections
