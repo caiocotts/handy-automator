@@ -250,7 +250,7 @@ func (s Server) GetWorkflow(ctx context.Context, request GetWorkflowRequestObjec
 	if errors.Is(err, persistence.ErrNotFound) {
 		return GetWorkflow404JSONResponse{
 			Message: err.Error(),
-		}, err
+		}, nil
 	}
 
 	if err != nil {
