@@ -8,6 +8,7 @@ services:
       - "5432:5432"
     volumes:
       - ./scripts/check-db-connection.sh:/check-db-connection.sh
+      - pg_data:/var/lib/postgresql
   development:
     build:
       context: docker/dev
@@ -25,3 +26,5 @@ services:
     working_dir: /workspace
     env_file:
       - .env
+volumes:
+  pg_data:
