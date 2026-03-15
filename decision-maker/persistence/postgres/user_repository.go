@@ -33,7 +33,7 @@ func (r UserRepository) Create(ctx context.Context, username, password string) (
 
 	_, err = r.database.ExecContext(ctx, `insert into "user" values ($1, $2, $3)`, id, username, string(h))
 	if err != nil {
-		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)
+		return model.User{}, persistence.ParseDBError(err)
 	}
 
 	return model.User{
@@ -45,11 +45,11 @@ func (r UserRepository) Create(ctx context.Context, username, password string) (
 func (r UserRepository) Get(ctx context.Context, id string) (model.User, error) {
 	u := model.User{}
 	err := r.database.
-		QueryRowContext(ctx, `select * from "user" where id = $1`, id).
-		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken)
+		QueryRowContext(ctx, `select id, username, hash, refresh_token, face_embedding from "user" where id = $1`, id).
+		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken, &u.FaceEmbedding)
 
 	if err != nil {
-		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)
+		return model.User{}, persistence.ParseDBError(err)
 	}
 
 	return u, nil
@@ -58,11 +58,11 @@ func (r UserRepository) Get(ctx context.Context, id string) (model.User, error) 
 func (r UserRepository) GetByUsername(ctx context.Context, username string) (model.User, error) {
 	u := model.User{}
 	err := r.database.
-		QueryRowContext(ctx, `select * from "user" where username = $1`, username).
+		QueryRowContext(ctx, `select id, username, hash, refresh_token, face_embedding from "user" where username = $1`, username).
 		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken, &u.FaceEmbedding)
 
 	if err != nil {
-		return model.User{}, persistence.ParseDBError(persistence.PostgresError, err)
+		return model.User{}, persistence.ParseDBError(err)
 	}
 
 	return u, nil
@@ -76,7 +76,7 @@ where id = $2;
 `
 	_, err := r.database.ExecContext(ctx, query, refreshToken, id)
 	if err != nil {
-		return persistence.ParseDBError(persistence.PostgresError, err)
+		return persistence.ParseDBError(err)
 	}
 	return nil
 }
@@ -84,7 +84,7 @@ where id = $2;
 func (r UserRepository) Delete(ctx context.Context, id string) error { // TODO this should cascade delete all records whose FK is this user id
 	res, err := r.database.ExecContext(ctx, `delete from "user" where id = $1`, id)
 	if err != nil {
-		return persistence.ParseDBError(persistence.PostgresError, err)
+		return persistence.ParseDBError(err)
 	}
 	if n, _ := res.RowsAffected(); n == 0 {
 		return persistence.ErrNotFound
