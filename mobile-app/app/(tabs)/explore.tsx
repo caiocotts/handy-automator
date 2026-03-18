@@ -29,6 +29,18 @@ export default function TabTwoScreen() {
             console.error("Error fetching devices:", error);
         }
     };
+    const deleteDevice = async (deviceID: string) => {
+        try {
+            const response = await fetch("http://localhost:3000/api/device/" + deviceID, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json", Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzM4NzQxNTksImlhdCI6MTc3Mzg2Njk1OSwiaXNzIjoiZGVjaXNpb24tbWFrZXIiLCJzdWIiOiJ6UGJCc0tyWTEtclUifQ.nDp3OxrxffPxNKoCtHUMlrOCzbrRBVw8nw8L3SNtkew', },
+            });
+            await getDevices();
+        } catch (error) {
+            console.error("Error Deleting devices:", error);
+        }
+
+    };
 
 
     return (
@@ -73,15 +85,15 @@ export default function TabTwoScreen() {
                             {/*TODO add Edit functionality*/}
                             <TouchableOpacity
                                 style={styles.rightButton}
-                                onPress={() => console.log("Pressed", device.id)}
+                                onPress={() => console.log("Pressed Edit, on device id: ", device.id)}
                             >
                                 <Text style={styles.buttonText}>E</Text>
                             </TouchableOpacity>
 
-                            {/*TODO add remove functionality*/}
+                            {/*TODO add remove icon*/}
                             <TouchableOpacity
                                 style={styles.rightButton}
-                                onPress={() => console.log("Pressed", device.id)}
+                                onPress={() => deleteDevice(device.id)}
                             >
                                 <Text style={styles.buttonText}>R</Text>
                             </TouchableOpacity>
