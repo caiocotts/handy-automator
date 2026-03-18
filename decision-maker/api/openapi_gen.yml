@@ -469,16 +469,11 @@ paths:
             schema:
               properties:
                 devices:
+                  description: An array of device IDs to associate with this workflow
                   type: array
                   items:
-                    type: object
-                    properties:
-                      id:
-                        type: string
-                        description: Device ID
-                        example: pXkHij_kJjXh
-                    required:
-                      - id
+                    type: string
+                    example: pXkHij_kJjXh
               required:
                 - devices
       responses:
@@ -489,20 +484,19 @@ paths:
               schema:
                 properties:
                   devices:
+                    description: An array of device IDs associated with this workflow
                     type: array
                     items:
-                      type: object
-                      properties:
-                        id:
-                          type: string
-                          description: Device ID
-                          example: pXkHij_kJjXh
-                      required:
-                        - id
+                      type: string
+                      example: pXkHij_kJjXh
+                required:
+                  - devices
         '400':
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 components:
   securitySchemes:
     accessToken:

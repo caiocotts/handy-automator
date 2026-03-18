@@ -261,9 +261,30 @@ func (s Server) GetWorkflow(ctx context.Context, request GetWorkflowRequestObjec
 		}, nil
 	}
 
+	deviceStructSlice := make([]struct {
+		Id   string  `json:"id"`
+		Ip   string  `json:"ip"`
+		Name *string `json:"name,omitempty"`
+		Type *string `json:"type,omitempty"`
+	}, len(w.Devices))
+
+	for i, d := range w.Devices {
+		deviceStructSlice[i] = struct {
+			Id   string  `json:"id"`
+			Ip   string  `json:"ip"`
+			Name *string `json:"name,omitempty"`
+			Type *string `json:"type,omitempty"`
+		}{
+			Id: d.Id,
+			Ip: d.Ip.String(),
+		}
+	}
+
 	return GetWorkflow200JSONResponse{
-		Id:   w.Id,
-		Name: w.Name,
+		Id:      w.Id,
+		Name:    w.Name,
+		UserId:  w.UserId,
+		Devices: &deviceStructSlice,
 	}, nil
 }
 
@@ -318,9 +339,19 @@ func (s Server) DeleteWorkflow(context.Context, DeleteWorkflowRequestObject) (De
 	panic("implement me")
 }
 
-func (s Server) AssociateWorkflowDevices(context.Context, AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+func (s Server) AssociateWorkflowDevices(ctx context.Context, request AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error) {
+	deviceIds, err := s.workflowService.AssociateDevices(ctx, request.Id, request.Body.Devices)
+	if err != nil {
+		refCode := logWithRef(err, "AssociateWorkflowDevices")
+		return AssociateWorkflowDevices500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
+	return AssociateWorkflowDevices200JSONResponse{
+		Devices: deviceIds,
+	}, nil
 }
 
 func (s Server) TriggerWorkflow(context.Context, TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error) {
