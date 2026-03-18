@@ -166,7 +166,7 @@ func (s Server) GetDevice(ctx context.Context, request GetDeviceRequestObject) (
 	return GetDevice200JSONResponse{
 		Id: d.Id,
 		Ip: d.Ip.String(),
-	}, err
+	}, nil
 }
 
 func (s Server) GetDevices(ctx context.Context, _ GetDevicesRequestObject) (GetDevicesResponseObject, error) {
