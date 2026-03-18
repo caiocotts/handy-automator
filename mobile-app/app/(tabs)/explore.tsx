@@ -21,7 +21,7 @@ export default function TabTwoScreen() {
         try {
             const response = await fetch("http://localhost:3000/api/device", {
                 method: "GET",
-                headers: { "Content-Type": "application/json", Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzM2MjUyMjIsImlhdCI6MTc3MzYxODAyMiwiaXNzIjoiZGVjaXNpb24tbWFrZXIiLCJzdWIiOiIzem9lZGFCanlmX3gifQ.oXDok282z52spXBQM604aGydOZ18moKqhexOifM8ONg', },
+                headers: { "Content-Type": "application/json", Authorization: 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzM4NzQxNTksImlhdCI6MTc3Mzg2Njk1OSwiaXNzIjoiZGVjaXNpb24tbWFrZXIiLCJzdWIiOiJ6UGJCc0tyWTEtclUifQ.nDp3OxrxffPxNKoCtHUMlrOCzbrRBVw8nw8L3SNtkew', },
             });
             const data = await response.json();
             setDevices(data.devices ?? []);
@@ -56,10 +56,37 @@ export default function TabTwoScreen() {
 
             {devices.map((device) => (
                 <View key={device.id} style={styles.deviceCard}>
-                    <View style={styles.deviceInfo}>
-                        <Text style={styles.deviceName}>{device.name ?? 'Unnamed Device'}</Text>
-                        {device.type ? <Text style={styles.deviceType}>{device.type}</Text> : null}
-                        <Text style={styles.deviceIp}>{device.ip}</Text>
+                    <View style={styles.row}>
+
+                        <View style={styles.deviceInfo}>
+                            <Text style={styles.deviceName}>
+                                {device.name ?? 'Unnamed Device'}
+                            </Text>
+                            {device.type ? (
+                                <Text style={styles.deviceType}>{device.type}</Text>
+                            ) : null}
+                            <Text style={styles.deviceIp}>{device.ip}</Text>
+                        </View>
+
+                        <View style={styles.buttonGroup}>
+
+                            {/*TODO add Edit functionality*/}
+                            <TouchableOpacity
+                                style={styles.rightButton}
+                                onPress={() => console.log("Pressed", device.id)}
+                            >
+                                <Text style={styles.buttonText}>E</Text>
+                            </TouchableOpacity>
+
+                            {/*TODO add remove functionality*/}
+                            <TouchableOpacity
+                                style={styles.rightButton}
+                                onPress={() => console.log("Pressed", device.id)}
+                            >
+                                <Text style={styles.buttonText}>R</Text>
+                            </TouchableOpacity>
+                        </View>
+
                     </View>
                 </View>
             ))}
@@ -81,6 +108,7 @@ export default function TabTwoScreen() {
                     </TouchableOpacity>
                 </Link>
             </View>
+
 
         </ParallaxScrollView>
     );
@@ -141,5 +169,26 @@ const styles = StyleSheet.create({
     titleContainer: {
         flexDirection: 'row',
         gap: 8,
+    },
+    rightButton: {
+        marginLeft: 10,
+        width: 30,
+        backgroundColor: '#333',
+        padding: 10,
+        borderRadius: 8,
+    },
+
+    buttonText: {
+        color: '#fff',
+        fontWeight: 'bold',
+    },
+    row: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+    },
+    buttonGroup: {
+        flexDirection: 'row',
+        gap: 8, // space between buttons
     },
 });
