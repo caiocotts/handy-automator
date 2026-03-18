@@ -42,6 +42,44 @@ export default function TabTwoScreen() {
 
     };
 
+    const generateRandomIP = () => {
+        return `${randByte()}.${randByte()}.${randByte()}.${randByte()}`;
+    };
+
+    const randByte = () => Math.floor(Math.random() * 256);
+
+    const addDeviceForTesting = async () => {
+        try {
+            const newDevice = {
+                name: "Test Device",
+                type: "Phone",
+                ip: generateRandomIP(),
+            };
+
+            const response = await fetch("http://localhost:3000/api/device", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization:
+                        "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzM4NzQxNTksImlhdCI6MTc3Mzg2Njk1OSwiaXNzIjoiZGVjaXNpb24tbWFrZXIiLCJzdWIiOiJ6UGJCc0tyWTEtclUifQ.nDp3OxrxffPxNKoCtHUMlrOCzbrRBVw8nw8L3SNtkew",
+                },
+                body: JSON.stringify(newDevice),
+            });
+
+            if (!response.ok) {
+                const text = await response.text();
+                console.error("Add device failed:", text);
+                return;
+            }
+
+            const data = await response.json();
+            setDevices(data.devices ?? []);
+
+            await getDevices();
+        } catch (error) {
+            console.error("Error Adding devices:", error);
+        }
+    };
 
     return (
         <ParallaxScrollView
@@ -119,6 +157,11 @@ export default function TabTwoScreen() {
                         <Text style={styles.addButtonText}>Add device</Text>
                     </TouchableOpacity>
                 </Link>
+
+                {/*FOR TESTING ONLY*/}
+                <TouchableOpacity style={styles.button} onPress={addDeviceForTesting}>
+                    <Text style={styles.addButtonText}>add device for testing</Text>
+                </TouchableOpacity>
             </View>
 
 
