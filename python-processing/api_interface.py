@@ -20,6 +20,26 @@ def workflow_api_call(gesture_id:str, auth_token):
     print(r.text)
     return r.status_code == 200
     
+#Storing a new face embedding into database. 
+def store_embedding_api_call(embeddings: list[float], username: str) -> bool:
+    """
+    Stores a new face embedding into the database. 
+    Note: Adjust the endpoint '/embeddings/store' to match your actual API specs.
+    """
+    payload = {
+        "userId": username,
+        "embedding": embeddings
+    }
+    r = requests.post("http://localhost:3000/api/user/face", json=payload)
+
+    if r.status_code == 200: 
+        print(f"Sucessfully stored embeddings for {username},")
+        return True
+    else: 
+        print(f"Failed to store embeddings. Status: {r.status_code}. Error: {r.text}")
+        return False
+    
+
 """ HIGH PRIO
     - Get all workflows
     - Get workflow by id
