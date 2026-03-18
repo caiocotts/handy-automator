@@ -31,14 +31,14 @@ def store_embedding_api_call(embeddings: list[float], username: str) -> bool:
         "embedding": embeddings
     }
     r = requests.post("http://localhost:3000/api/user/face", json=payload)
-
-    if r.status_code == 200: 
-        print(f"Sucessfully stored embeddings for {username},")
-        return True
-    else: 
-        print(f"Failed to store embeddings. Status: {r.status_code}. Error: {r.text}")
+    try:
+        if r.status_code == 200: 
+            print(f"Sucessfully stored embeddings for {username},")
+            return True
+    except requests.exceptions.RequestException as e: 
+        print(f"Error: {e}")
         return False
-    
+
 
 """ HIGH PRIO
     - Get all workflows
