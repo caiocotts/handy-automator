@@ -18,16 +18,11 @@ put:
         schema:
           properties:
             devices:
+              description: An array of device IDs to associate with this workflow
               type: array
               items:
-                type: object
-                properties:
-                  id:
-                    type: string
-                    description: Device ID
-                    example: pXkHij_kJjXh
-                required:
-                  - id
+                type: string
+                example: pXkHij_kJjXh
           required:
             - devices
   responses:
@@ -38,17 +33,16 @@ put:
           schema:
             properties:
               devices:
+                description: An array of device IDs associated with this workflow
                 type: array
                 items:
-                  type: object
-                  properties:
-                    id:
-                      type: string
-                      description: Device ID
-                      example: pXkHij_kJjXh
-                  required:
-                    - id
+                  type: string
+                  example: pXkHij_kJjXh
+            required:
+              - devices
     '400':
       $ref: ../components/responses/BadRequest.yml
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

@@ -34,6 +34,15 @@ func (s Service) Create(ctx context.Context, name string) (model.Workflow, error
 	return w, nil
 }
 
+func (s Service) AssociateDevices(ctx context.Context, workflowId string, deviceIds []string) ([]string, error) {
+	ids, err := s.workflowRepository.AssociateDevices(ctx, workflowId, deviceIds)
+	if err != nil {
+		return nil, err
+	}
+
+	return ids, err
+}
+
 func (s Service) GetById(ctx context.Context, id string) (model.Workflow, error) {
 	w, err := s.workflowRepository.Get(ctx, id)
 	if err != nil {

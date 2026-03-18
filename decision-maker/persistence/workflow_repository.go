@@ -11,4 +11,5 @@ type WorkflowRepository interface {
 	GetAll(ctx context.Context) ([]model.Workflow, error)
 	Update() (model.Workflow, error)
 	Delete(ctx context.Context, id string) error
+	AssociateDevices(ctx context.Context, workflowId string, deviceIds []string) ([]string, error)
 }
