@@ -8,9 +8,12 @@ def ping():
     return r.status_code == 200    
 
 def auth_user_api_call(embeddings: list[float], username : str) -> str | None:
-    r = requests.post("http:localhost:3000/api/login/face", data={"Face Embeddings": embeddings, "Username": username})
+    data = {"userId":username,"embedding":embeddings}
+    json_string = json.dump(data, indent=4)
+    r = requests.post("http:localhost:3000/api/login/face", data={json_string})
     if r.status_code == 200:
-        return r.text()
+        token_json = r.json()
+        return token_json["authToken"]
     else:
         return None
     
