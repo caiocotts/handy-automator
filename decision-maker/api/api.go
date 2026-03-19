@@ -88,9 +88,23 @@ func (s Server) LoginUser(ctx context.Context, request LoginUserRequestObject) (
 	}, nil
 }
 
-func (s Server) LoginUserWithFace(context.Context, LoginUserWithFaceRequestObject) (LoginUserWithFaceResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+func (s Server) LoginUserWithFace(ctx context.Context, request LoginUserWithFaceRequestObject) (LoginUserWithFaceResponseObject, error) {
+	at, err := s.authService.LoginWithFace(ctx, request.Body.UserId, request.Body.Embedding)
+	if errors.Is(err, auth.ErrInvalidCredentials) || errors.Is(err, auth.ErrNoRegisteredFace) {
+		return LoginUserWithFace401Response{}, nil
+	}
+
+	if err != nil {
+		refCode := logWithRef(err, "LoginUserWithFace")
+		return LoginUserWithFace500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
+	return LoginUserWithFace200JSONResponse{
+		AccessToken: at,
+	}, err
 }
 
 func (s Server) RefreshAccessToken(ctx context.Context, _ RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error) {

@@ -14,10 +14,10 @@ def ping():
 def auth_user_api_call(embeddings: list[float], username : str) -> str | None:
     try:
         payload = {"userId":username,"embedding":embeddings}
-        r = requests.post("http://localhost:3000/api/login/face", json=payload)
+        r = requests.post("http://localhost:3000/api/auth/login/face", json=payload)
         if r.status_code == 200:
             token_json = r.json()
-            return token_json["authToken"]
+            return token_json["accessToken"]
     except requests.exceptions.RequestException as e: 
         print(f"Error: {e}")
         return None

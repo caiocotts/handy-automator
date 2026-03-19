@@ -17,6 +17,7 @@ post:
               type: array
               items:
                 type: number
+                format: double
               example: [ 0.1231224263, 0.08484738439, 0.376432679245, -0.54238732864 ]
           required:
             - userId
@@ -37,3 +38,5 @@ post:
               - accessToken
     '401':
       $ref: ../components/responses/NotAuthorized.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
