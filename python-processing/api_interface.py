@@ -1,27 +1,38 @@
 import requests
-import json
 # Need to adjust the header names according to what the api specs say
 
 def ping():
-    r = requests.get("http://localhost:3000/api/ping")
-    print(r.json())
-    return r.status_code == 200    
+    try:
+        r = requests.get("http://localhost:3000/api/ping")
+        print(r.json())
+        return r.status_code == 200    
+    except requests.exceptions.RequestException as e: 
+        print(f"Error: {e}")
+        return False
+
 
 def auth_user_api_call(embeddings: list[float], username : str) -> str | None:
-    data = {"userId":username,"embedding":embeddings}
-    json_string = json.dump(data, indent=4)
-    r = requests.post("http:localhost:3000/api/login/face", data={json_string})
-    if r.status_code == 200:
-        token_json = r.json()
-        return token_json["authToken"]
-    else:
+    try:
+        payload = {"userId":username,"embedding":embeddings}
+        r = requests.post("http://localhost:3000/api/login/face", json=payload)
+        if r.status_code == 200:
+            token_json = r.json()
+            return token_json["authToken"]
+    except requests.exceptions.RequestException as e: 
+        print(f"Error: {e}")
         return None
+    
     
 
 def workflow_api_call(gesture_id:str, auth_token):
-    r = requests.post("http://localhost:3000/api/workflows",data={"Gesture Id": gesture_id, "Auth Token": auth_token})
-    print(r.text)
-    return r.status_code == 200
+    try:
+        payload = {"gestureId": gesture_id, "authToken": auth_token} #Still need to check header names
+        r = requests.post("http://localhost:3000/api/workflows",json=payload)
+        if r.status_code == 200:
+            return r.json() #Check what the output is
+    except requests.exceptions.RequestException as e: 
+        print(f"Error: {e}")
+        return None
     
 """ HIGH PRIO
     - Get all workflows
@@ -35,5 +46,3 @@ def workflow_api_call(gesture_id:str, auth_token):
 """ OPTIONAL
     - Adjust camera settings (ISO, exposure, etc.) or just auto
 """
-
-# auth_user_api_call(r"C:\Users\chris\OneDrive\Desktop\handy-automator\python-processing\database\embeddings\PXL_20260312_014832345.MP.npy", "Chris")

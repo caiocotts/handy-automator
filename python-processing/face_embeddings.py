@@ -59,15 +59,40 @@ def get_faces_old() -> dict:
         print(f"There are no images/embeddings in the database")
     return known_embeddings
 
-def get_faces():
+def reload_faces(known_embeddings : dict[str : list[float]]) -> dict[str : list[float]]:
     '''
-    Querey the DB and pull all the face embeddings {Name: VECTOR}
-    '''
-    return saved_embeddings
+    Iterates over AUTH_DIR to add new faces to embeddings. 
 
-def add_face()-> bool: 
+    Args:
+        - the dictionary of userId and their associated embedding
+
+    Returns: 
+        - dict [str : list[float]]
     '''
-    When the user enters the setup mode to add a new user to their list of authroized users, this should be run. 
-    It should search the frame for a new face and once detected it should pull an embedding and save it to the db with 
-    the user inputted name.
-    '''
+    if os.path.exists(AUTH_DIR):
+        for file in os.listdir(AUTH_DIR):
+            if file.lower().endswith((".jpg", ".png", ".jpeg")):
+                name = os.path.splitext(file)[0]
+                
+                if name in known_embeddings:
+                    continue
+
+                path = os.path.join(AUTH_DIR, file)
+                embedding_path = os.path.join(EMBEDDINGS_DIR, f"{name}.npy")
+                
+                try:
+                    embedding = DeepFace.represent(
+                        img_path=path,
+                        model_name="ArcFace",
+                        detector_backend="retinaface",
+                        enforce_detection=True
+                    )[0]["embedding"]
+                    
+                    embedding_np = np.array(embedding)
+                    np.save(embedding_path, embedding_np)
+                    known_embeddings[name] = embedding_np    
+                    print(f"Created and loaded embedding for {name}")
+                except Exception as e:
+                    print(f"Error creating embedding for {name}: {e}")
+
+    return known_embeddings

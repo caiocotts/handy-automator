@@ -9,7 +9,8 @@ import time
 import config
 
 
-pr_model_path = './pose_landmarker_full.task' 
+pr_model_path = './database/models/pose_landmarker_full.task'
+ 
 pr_options = mp.tasks.vision.PoseLandmarkerOptions(
     base_options=gr.BaseOptions(model_asset_path=pr_model_path),
     running_mode=gr.VisionRunningMode.LIVE_STREAM,
