@@ -16,6 +16,7 @@ import (
 )
 
 var ErrInvalidCredentials = errors.New("authentication failed")
+var ErrNoRegisteredFace = errors.New("no face stored in the database for the given user")
 
 type Service struct {
 	userRepository persistence.UserRepository
@@ -69,6 +70,47 @@ func (s Service) Login(ctx context.Context, username, password string) (model.Us
 	u.RefreshToken = &refreshToken
 
 	return u, accessToken, nil
+}
+
+func (s Service) LoginWithFace(ctx context.Context, userId string, embedding []float64) (string, error) {
+	const threshold = 0.6
+
+	u, err := s.userRepository.Get(ctx, userId)
+	if errors.Is(err, persistence.ErrNotFound) {
+		return "", ErrInvalidCredentials
+	}
+	if err != nil {
+		return "", err
+	}
+
+	if u.FaceEmbedding == nil {
+		return "", ErrNoRegisteredFace
+	}
+
+	if len(embedding) != len(*u.FaceEmbedding) {
+		return "", ErrInvalidCredentials
+	}
+
+	d, err := cosineDistance(embedding, *u.FaceEmbedding)
+	if err != nil {
+		return "", err
+	}
+
+	if d >= threshold {
+		return "", ErrInvalidCredentials
+	}
+
+	t, err := createJWT(userId, time.Now().Add(time.Hour*2))
+	if err != nil {
+		return "", err
+	}
+
+	accessToken, err := signJWT(t)
+	if err != nil {
+		return "", err
+	}
+
+	return accessToken, nil
 }
 
 func (s Service) Refresh(ctx context.Context) (string, error) {

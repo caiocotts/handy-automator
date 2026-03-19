@@ -154,6 +154,7 @@ paths:
                   type: array
                   items:
                     type: number
+                    format: double
                   example:
                     - 0.1231224263
                     - 0.08484738439
@@ -178,6 +179,8 @@ paths:
                   - accessToken
         '401':
           $ref: '#/components/responses/NotAuthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /auth/refresh:
     get:
       summary: Issue new access token

@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"decisionMaker/model"
 	"decisionMaker/persistence"
+	"encoding/json"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 	"golang.org/x/crypto/bcrypt"
@@ -44,12 +45,19 @@ func (r UserRepository) Create(ctx context.Context, username, password string) (
 
 func (r UserRepository) Get(ctx context.Context, id string) (model.User, error) {
 	u := model.User{}
+	var rawEmbedding []byte
 	err := r.database.
 		QueryRowContext(ctx, `select id, username, hash, refresh_token, face_embedding from "user" where id = $1`, id).
-		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken, &u.FaceEmbedding)
-
+		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken, &rawEmbedding)
 	if err != nil {
 		return model.User{}, persistence.ParseDBError(err)
+	}
+	if rawEmbedding != nil {
+		var v []float64
+		if err := json.Unmarshal(rawEmbedding, &v); err != nil {
+			return model.User{}, persistence.ParseDBError(err)
+		}
+		u.FaceEmbedding = &v
 	}
 
 	return u, nil
