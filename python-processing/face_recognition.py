@@ -17,7 +17,7 @@ CHECK_INTERVAL = 1.0      # Seconds between recognition checks
 THRESHOLD = 0.6           # Cosine similarity threshold
 AUTH_LOCK_TIME = 7.0      # Lock duration after success
 
-known_embeddings = {}  # name -> embedding
+known_embeddings = {}  # UserID -> embedding
 auth_times = {}        # name -> last authentication timestamp
 auth_tokens = {}       # UserID -> Token String
 tracked_faces = []     # ((x, y, w, h), "git")
@@ -117,13 +117,13 @@ def authorize(face_img):
         return None
 
 
-def check_faces(face_img):
+def check_faces(face_img) -> str | None:
     """
     Generates a facial embedding from the provided face image and
     compares it against stored reference embeddings to determine identity.
 
     Args:
-        - face_img (numpy.ndarray): Cropped image of a detected face.
+        - face_img (CV2 Frame): Cropped image of a detected face.
 
     Returns:
         - str | None
@@ -159,3 +159,10 @@ def is_authenticated_user_present():
         if name != "Unknown":
             return True
     return False
+
+def update_known_faces():
+    """
+    Updates the global known_embeddings dictionary by checking for new user images.
+    """
+    global known_embeddings
+    known_embeddings = fe.reload_faces(known_embeddings)

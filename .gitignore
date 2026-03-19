@@ -10,3 +10,4 @@ node_modules
 .npy
 python-processing/database/embeddings
 .DS_Store
+python-processing/database/auth_users/

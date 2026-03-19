@@ -7,7 +7,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 # --- Configuration ---
-model_path = './gesture_recognizer.task'
+model_path = './database/models/gesture_recognizer.task'
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
 GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
