@@ -1,5 +1,5 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity } from 'react-native';
 
 import { HelloWave } from '@/components/hello-wave';
 import ParallaxScrollView from '@/components/parallax-scroll-view';
@@ -18,14 +18,28 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">FLAg!</ThemedText>
+        <ThemedText type="title">Welcome to Handy Automator</ThemedText>
         <HelloWave />
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Create Account</ThemedText>
-        <ThemedText>
-          Please <ThemedText type="defaultSemiBold">Sign In/Create Account</ThemedText> to verify identity
-          
+          <ThemedText type="subtitle">Step 1: Sign In or Create an Account</ThemedText>
+          <ThemedText>
+              Please <ThemedText type="defaultSemiBold">sign in or create an account</ThemedText> to verify your identity and access the system.
+          </ThemedText>
+          <ThemedView style={styles.authButtons}>
+      <Link href="/signin" asChild>
+          <TouchableOpacity style={styles.signInButton}>
+              <ThemedText style={styles.buttonText}>Sign in</ThemedText>
+          </TouchableOpacity>
+      </Link>
+
+      <Link href="/create-account" asChild>
+          <TouchableOpacity style={styles.createAccountButton}>
+              <ThemedText style={styles.buttonText}>Create Account</ThemedText>
+          </TouchableOpacity>
+      </Link>
+      </ThemedView>
+      </ThemedView>
           {/* <ThemedText type="defaultSemiBold">
             {Platform.select({
               ios: 'cmd + d',
@@ -34,8 +48,7 @@ export default function HomeScreen() {
             })}
           </ThemedText>{' '}
           to open developer tools. */}
-        </ThemedText>
-      </ThemedView>
+
       <ThemedView style={styles.stepContainer}>
         <Link href="/modal">
           <Link.Trigger>
@@ -65,11 +78,9 @@ export default function HomeScreen() {
         </ThemedText>
       </ThemedView>
       <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: fuck off</ThemedText>
+        <ThemedText type="subtitle">Step 3: Start Using the System</ThemedText>
         <ThemedText>
-          {`you get it now `}
-          <ThemedText type="defaultSemiBold">fuck off</ThemedText> 
-          {' and have fun'}
+          <ThemedText type="defaultSemiBold">Once your account and gestures are configured, you can control your smart home using facial recognition and custom hand gestures</ThemedText>
         </ThemedText>
       </ThemedView>
     </ParallaxScrollView>
@@ -93,4 +104,28 @@ const styles = StyleSheet.create({
     left: 0,
     position: 'absolute',
   },
+    authButtons: {
+      marginTop: 12,
+        gap: 12,
+    },
+    signInButton: {
+      backgroundColor: '#0a7ea4',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 10,
+        alignItems: 'center',
+    },
+    createAccountButton: {
+      backgroundColor: '#1D3D47',
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        borderRadius: 10,
+        alignItems: 'center',
+        borderWidth: 1,
+        borderColor: '#0a7ea4',
+    },
+    buttonText: {
+      color: 'white',
+        fontWeight: 'bold',
+    },
 });
