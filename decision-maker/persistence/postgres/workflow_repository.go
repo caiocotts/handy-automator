@@ -71,6 +71,41 @@ where workflow_id = $1
 	return w, nil
 }
 
+func (r WorkflowRepository) GetByUserIdAndGestureId(ctx context.Context, userId string, gestureId int) (model.Workflow, error) {
+	w := model.Workflow{}
+	err := r.database.
+		QueryRowContext(ctx, `select id, name, user_id, gesture_id from workflow where user_id = $1 and gesture_id = $2`, userId, gestureId).
+		Scan(&w.Id, &w.Name, &w.UserId, &w.GestureId)
+	if err != nil {
+		return model.Workflow{}, persistence.ParseDBError(err)
+	}
+
+	sql := `
+select d.id, d.ip, d.name, d.type
+from "device" d
+         join "workflow_device" wd on d.id = wd.device_id
+         join "workflow" w on w.id = wd.workflow_id
+where w.id = '0D2t1Dkx2YGk'`
+	rows, err := r.database.QueryContext(ctx, sql)
+	if err != nil {
+		return model.Workflow{}, persistence.ParseDBError(err)
+	}
+	defer rows.Close()
+	var devices []model.Device
+	for rows.Next() {
+		d := model.Device{}
+		i := ""
+		if err := rows.Scan(&d.Id, &i, &d.Name, &d.Type); err != nil {
+			return model.Workflow{}, persistence.ParseDBError(err)
+		}
+		d.Ip = net.ParseIP(i)
+		devices = append(devices, d)
+	}
+	w.Devices = devices
+
+	return w, nil
+}
+
 func (r WorkflowRepository) GetAll(ctx context.Context) ([]model.Workflow, error) {
 	rows, err := r.database.QueryContext(ctx, `select * from "workflow"`)
 	if err != nil {

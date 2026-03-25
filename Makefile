@@ -29,6 +29,10 @@ destroy-db: ##@Database Stop the database container and erase all its data
 	@docker compose down postgres -v
 .PHONY: destroy-db
 
+seed-db: start-db check-db-status ##@Database Seed the database with sample data
+	@$(TOOL) goose -dir /db/seed postgres -no-versioning up
+.PHONY: seed-db
+
 mup: start-db check-db-status ##@Database Apply all migrations
 	@$(TOOL) goose $(GOOSE_OPTS) up
 .PHONY: mup

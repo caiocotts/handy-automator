@@ -5,6 +5,8 @@ import (
 	"decisionMaker/model"
 	"decisionMaker/persistence"
 	"errors"
+	"fmt"
+	"net/http"
 )
 
 var ErrEmptyName = errors.New("workflow name is empty")
@@ -59,4 +61,27 @@ func (s Service) GetAll(ctx context.Context) ([]model.Workflow, error) {
 	}
 
 	return workflows, nil
+}
+
+func (s Service) Trigger(ctx context.Context, gestureId int) error {
+	uid := ctx.Value("userId").(string)
+	if uid == "" {
+		return errors.New("error: user ID not present in context")
+	}
+
+	w, err := s.workflowRepository.GetByUserIdAndGestureId(ctx, uid, gestureId)
+	if err != nil {
+		return err
+	}
+
+	for _, device := range w.Devices {
+		url := fmt.Sprintf("http://%s/device/toggle", device.Ip.String())
+		resp, err := http.Post(url, "", nil)
+		if err != nil {
+			return fmt.Errorf("error toggling device %s: %w", device.Id, err)
+		}
+		resp.Body.Close()
+	}
+
+	return nil
 }

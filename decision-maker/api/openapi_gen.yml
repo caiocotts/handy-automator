@@ -364,7 +364,7 @@ paths:
               type: object
               properties:
                 gestureId:
-                  type: string
+                  type: integer
                   description: Gesture ID
                   example: '2'
               required:
@@ -374,6 +374,8 @@ paths:
           description: Workflow triggered
         '401':
           $ref: '#/components/responses/NotAuthorized'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /workflow/{id}:
     get:
       summary: Get workflow by ID

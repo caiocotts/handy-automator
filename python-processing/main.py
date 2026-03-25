@@ -84,7 +84,7 @@ def main():
                                         label_text = f"{display_name} + hand"
                                         gesture_id = gr.get_hardcode_index(gr.latest_result.gestures[0][0].category_name)
                                         if gesture_id != 0:
-                                            api.ping()
+                                            api.workflow_api_call( gesture_id, fr.auth_tokens[name])
                                         cv2.putText(frame, label_text, (fx, fy-10),
                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 

@@ -12,7 +12,7 @@ post:
           type: object
           properties:
             gestureId:
-              type: string
+              type: integer
               description: Gesture ID
               example: "2"
           required:
@@ -22,3 +22,5 @@ post:
       description: Workflow triggered
     '401':
       $ref: ../components/responses/NotAuthorized.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
