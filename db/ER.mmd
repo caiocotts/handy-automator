@@ -7,6 +7,8 @@ erDiagram
     device {
         varchar(12) id PK ""
         varchar(15) ip  ""
+        text name ""
+        text type ""
     }
 
     workflow_device {
@@ -18,20 +20,17 @@ erDiagram
         varchar(12) id PK ""
         text name ""
         varchar(12) user_id FK
+        int gesture_id
     }
 
     user {
         varchar(12) id PK ""
-        text username  ""
+        text username UK ""
         text hash ""
+        text refresh_token ""
+        jsonb face_embedding ""
     }
 
-    gesture {
-        varchar(12) id PK ""
-        varchar(12) user_id FK ""
-    }
-
-    gesture }o--o| user: "  "
-    user |o--o{ workflow: "  "
-    device }o--o| workflow_device: "  "
-    workflow_device |o--o{ workflow: "  "
+    user ||--o{ workflow: "  "
+    device ||--o{ workflow_device: "  "
+    workflow ||--o{ workflow_device: "  "

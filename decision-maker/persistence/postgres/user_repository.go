@@ -65,12 +65,19 @@ func (r UserRepository) Get(ctx context.Context, id string) (model.User, error) 
 
 func (r UserRepository) GetByUsername(ctx context.Context, username string) (model.User, error) {
 	u := model.User{}
+	var rawEmbedding []byte
 	err := r.database.
 		QueryRowContext(ctx, `select id, username, hash, refresh_token, face_embedding from "user" where username = $1`, username).
-		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken, &u.FaceEmbedding)
-
+		Scan(&u.Id, &u.Username, &u.PasswordHash, &u.RefreshToken, &rawEmbedding)
 	if err != nil {
 		return model.User{}, persistence.ParseDBError(err)
+	}
+	if rawEmbedding != nil {
+		var v []float64
+		if err := json.Unmarshal(rawEmbedding, &v); err != nil {
+			return model.User{}, persistence.ParseDBError(err)
+		}
+		u.FaceEmbedding = &v
 	}
 
 	return u, nil

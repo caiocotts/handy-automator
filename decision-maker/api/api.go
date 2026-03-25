@@ -368,7 +368,15 @@ func (s Server) AssociateWorkflowDevices(ctx context.Context, request AssociateW
 	}, nil
 }
 
-func (s Server) TriggerWorkflow(context.Context, TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+func (s Server) TriggerWorkflow(ctx context.Context, request TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error) {
+	err := s.workflowService.Trigger(ctx, request.Body.GestureId)
+	if err != nil {
+		refCode := logWithRef(err, "TriggerWorkflow")
+		return TriggerWorkflow500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
+	return TriggerWorkflow200Response{}, nil
 }
