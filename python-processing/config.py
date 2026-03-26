@@ -1,4 +1,4 @@
-import cv2
+from cv2_enumerate_cameras import enumerate_cameras
 from pygrabber.dshow_graph import FilterGraph
 
 def get_available_cameras()-> dict[int, str]:
@@ -18,6 +18,16 @@ def get_available_cameras()-> dict[int, str]:
 
     return available_cameras
 
+def get_available_cameras2()-> dict[int, str]:
+    cameras_found = {}
+    counter = 0
+    for camera_info in enumerate_cameras():
+        if camera_info not in cameras_found:
+            cameras_found[camera_info] = counter
+            counter += 1
+    return cameras_found
+    
+
 def get_ptz_camera()-> int|None:
     """
     This function will check whether the VADDIO PTZ Camera is detected.
@@ -32,6 +42,5 @@ def get_ptz_camera()-> int|None:
             return keys
     # Change to None when development is done
     return 0
-
-
-print(get_available_cameras())
+print(get_available_cameras2())
+# print(get_available_cameras())
