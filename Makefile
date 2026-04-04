@@ -9,6 +9,14 @@ dm: ##@Development Start the decision-maker in development mode
 	@cd ./decision-maker && go tool reflex --decoration=none --config=./reflex.conf
 .PHONY: dm
 
+pu: ##@Development Start the processing-unit in development mode
+	@cd ./python-processing && uv run main.py
+.PHONY: pu
+
+test-pu: ##@Development Run the processing-unit test suite
+	@cd ./python-processing && python .\test_suite\test.py
+.PHONY: test
+
 gen-api: lint-api ##@Development Generate API code from the OpenAPI spec
 	@$(TOOL) go generate ./api/...
 .PHONY: gen-api
@@ -49,11 +57,3 @@ migration: ##@Database Create a new migration SQL file in db/migrations
 check-db-status: ##@Miscellaneous Check if the database is ready to accept connections (internal)
 	@docker compose exec postgres bash /check-db-connection.sh
 .PHONY:check-db-status
-
-run-py: ##@Development Run the main.py file and start the program
-	@cd ./python-processing && uv run main.py
-.PHONY: run-py
-
-test: ##@Development Run the test suite.
-	@cd ./python-processing && python .\test_suite\test.py
-.PHONY: test
