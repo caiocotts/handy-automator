@@ -46,13 +46,14 @@ def main():
                     embedding = fr.known_embeddings[username]
                     embedding = embedding.tolist()
                     
-                    #REMOVE WHEN ENDPOINT IS READY
-                    print(embedding,username)
                     auth_token = api.auth_user_api_call(embedding, username)
-                    print(f'auth token generated')
                     if auth_token:
+                        print(f'auth token generated')
                         # Store the token
-                        fr.auth_tokens[username] = auth_token
+                        try:
+                            fr.auth_tokens[username] = auth_token
+                        except Exception as e:
+                            print(f"Error storing auth token: {e}")
             
                 
 
@@ -83,8 +84,9 @@ def main():
                                         display_name = name.upper() if name != "Unknown" else "UNKNOWN"
                                         label_text = f"{display_name} + hand"
                                         gesture_id = gr.get_hardcode_index(gr.latest_result.gestures[0][0].category_name)
-                                        if gesture_id != 0:
+                                        if gesture_id != 0 and name in fr.auth_tokens:
                                             api.workflow_api_call( gesture_id, fr.auth_tokens[name])
+                                            # print("Call API")
                                         cv2.putText(frame, label_text, (fx, fy-10),
                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
