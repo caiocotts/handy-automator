@@ -17,6 +17,10 @@ pr_options = mp.tasks.vision.PoseLandmarkerOptions(
     result_callback=pr.update_pose_result
 )
 
+# Rate limiting state
+last_workflow_trigger = {}  # Map of (username, gesture_id) -> timestamp
+WORKFLOW_COOLDOWN = 5.0     # Minimum seconds between triggers for the same gesture
+
 def main():
     cam = cv2.VideoCapture(config.get_ptz_camera())
     # Get the dimensions of the frame
@@ -84,9 +88,16 @@ def main():
                                         display_name = name.upper() if name != "Unknown" else "UNKNOWN"
                                         label_text = f"{display_name} + hand"
                                         gesture_id = gr.get_hardcode_index(gr.latest_result.gestures[0][0].category_name)
+                                        
                                         if gesture_id != 0 and name in fr.auth_tokens:
-                                            api.workflow_api_call( gesture_id, fr.auth_tokens[name])
-                                            # print("Call API")
+                                            current_time = time.time()
+                                            trigger_key = (name, gesture_id)
+                                            
+                                            # Only call the API if the cooldown has expired
+                                            if current_time - last_workflow_trigger.get(trigger_key, 0) > WORKFLOW_COOLDOWN:
+                                                api.workflow_api_call(gesture_id, fr.auth_tokens[name])
+                                                last_workflow_trigger[trigger_key] = current_time
+                                                
                                         cv2.putText(frame, label_text, (fx, fy-10),
                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 
