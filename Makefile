@@ -5,9 +5,9 @@ help: ##@Miscellaneous Show this help message
 	@python3 ./scripts/help.py
 .PHONY: help
 
-dev: ##@Development Start handy-automator in development mode
-	@docker compose up development
-.PHONY: dev
+dm: ##@Development Start the decision-maker in development mode
+	@cd ./decision-maker && go tool reflex --decoration=none --config=./reflex.conf
+.PHONY: dm
 
 gen-api: lint-api ##@Development Generate API code from the OpenAPI spec
 	@$(TOOL) go generate ./api/...
