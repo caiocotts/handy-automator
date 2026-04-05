@@ -10,11 +10,11 @@ dm: ##@Development Start the decision-maker in development mode
 .PHONY: dm
 
 pu: ##@Development Start the processing-unit in development mode
-	@cd ./python-processing && uv run main.py
+	@cd ./processing-unit && uv run main.py
 .PHONY: pu
 
 test-pu: ##@Development Run the processing-unit test suite
-	@cd ./python-processing && python3 ./test_suite/test.py
+	@cd ./processing-unit && python3 ./test_suite/test.py
 .PHONY: test
 
 gen-api: lint-api ##@Development Generate API code from the OpenAPI spec
