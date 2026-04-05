@@ -31,8 +31,6 @@ def workflow_api_call(gesture_id: int, auth_token: str):
         header = {"Authorization": f"Bearer {auth_token}"}
         r = requests.post("http://localhost:3000/api/workflow/trigger", json=payload, headers=header)
         # print(auth_token)
-        if r.status_code == 200:
-            return r.json()  # Check what the output is
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         return None
