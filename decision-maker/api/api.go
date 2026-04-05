@@ -9,11 +9,11 @@ import (
 	"decisionMaker/persistence"
 	"decisionMaker/service/auth"
 	"decisionMaker/service/device"
+	"decisionMaker/service/discovery"
 	"decisionMaker/service/user"
 	"decisionMaker/service/workflow"
 	_ "embed"
 	"errors"
-	"fmt"
 )
 
 const internalErrorMessage = "internal server error"
@@ -25,18 +25,20 @@ var Spec []byte
 var Docs []byte
 
 type Server struct {
-	deviceService   *device.Service
-	userService     *user.Service
-	workflowService *workflow.Service
-	authService     *auth.Service
+	deviceService    *device.Service
+	userService      *user.Service
+	workflowService  *workflow.Service
+	authService      *auth.Service
+	discoveryService *discovery.Service
 }
 
-func NewServer(ds *device.Service, us *user.Service, ws *workflow.Service, as *auth.Service) Server {
+func NewServer(ds *device.Service, us *user.Service, ws *workflow.Service, as *auth.Service, disc *discovery.Service) Server {
 	return Server{
-		deviceService:   ds,
-		userService:     us,
-		workflowService: ws,
-		authService:     as,
+		deviceService:    ds,
+		userService:      us,
+		workflowService:  ws,
+		authService:      as,
+		discoveryService: disc,
 	}
 }
 
@@ -139,28 +141,6 @@ func (s Server) DeleteUser(ctx context.Context, request DeleteUserRequestObject)
 	return DeleteUser204Response{}, nil
 }
 
-func (s Server) CreateDevice(ctx context.Context, request CreateDeviceRequestObject) (CreateDeviceResponseObject, error) {
-	d, err := s.deviceService.Create(ctx, request.Body.Ip)
-	if errors.Is(err, device.ErrInvalidIPFormat) {
-		return CreateDevice400JSONResponse{
-			Message: fmt.Sprintf(`'%s' is not a valid ip`, request.Body.Ip),
-		}, nil
-	}
-
-	if err != nil {
-		refCode := logWithRef(err, "CreateDevice")
-		return CreateDevice500JSONResponse{
-			Message: internalErrorMessage,
-			Ref:     refCode,
-		}, nil
-	}
-
-	return CreateDevice201JSONResponse{
-		Id: d.Id,
-		Ip: d.Ip.String(),
-	}, nil
-}
-
 func (s Server) GetDevice(ctx context.Context, request GetDeviceRequestObject) (GetDeviceResponseObject, error) {
 	d, err := s.deviceService.GetById(ctx, request.Id)
 	if errors.Is(err, persistence.ErrNotFound) {
@@ -178,8 +158,8 @@ func (s Server) GetDevice(ctx context.Context, request GetDeviceRequestObject) (
 	}
 
 	return GetDevice200JSONResponse{
-		Id: d.Id,
-		Ip: d.Ip.String(),
+		Id:       d.Id,
+		Hostname: d.Hostname,
 	}, nil
 }
 
@@ -194,21 +174,21 @@ func (s Server) GetDevices(ctx context.Context, _ GetDevicesRequestObject) (GetD
 	}
 
 	deviceStructSlice := make([]struct {
-		Id   string  `json:"id"`
-		Ip   string  `json:"ip"`
-		Name *string `json:"name,omitempty"`
-		Type *string `json:"type,omitempty"`
+		Hostname string  `json:"hostname"`
+		Id       string  `json:"id"`
+		Name     *string `json:"name,omitempty"`
+		Type     *string `json:"type,omitempty"`
 	}, len(devices))
 
 	for i, d := range devices {
 		deviceStructSlice[i] = struct {
-			Id   string  `json:"id"`
-			Ip   string  `json:"ip"`
-			Name *string `json:"name,omitempty"`
-			Type *string `json:"type,omitempty"`
+			Hostname string  `json:"hostname"`
+			Id       string  `json:"id"`
+			Name     *string `json:"name,omitempty"`
+			Type     *string `json:"type,omitempty"`
 		}{
-			Id: d.Id,
-			Ip: d.Ip.String(),
+			Id:       d.Id,
+			Hostname: d.Hostname,
 		}
 	}
 
@@ -276,21 +256,21 @@ func (s Server) GetWorkflow(ctx context.Context, request GetWorkflowRequestObjec
 	}
 
 	deviceStructSlice := make([]struct {
-		Id   string  `json:"id"`
-		Ip   string  `json:"ip"`
-		Name *string `json:"name,omitempty"`
-		Type *string `json:"type,omitempty"`
+		Hostname string  `json:"hostname"`
+		Id       string  `json:"id"`
+		Name     *string `json:"name,omitempty"`
+		Type     *string `json:"type,omitempty"`
 	}, len(w.Devices))
 
 	for i, d := range w.Devices {
 		deviceStructSlice[i] = struct {
-			Id   string  `json:"id"`
-			Ip   string  `json:"ip"`
-			Name *string `json:"name,omitempty"`
-			Type *string `json:"type,omitempty"`
+			Hostname string  `json:"hostname"`
+			Id       string  `json:"id"`
+			Name     *string `json:"name,omitempty"`
+			Type     *string `json:"type,omitempty"`
 		}{
-			Id: d.Id,
-			Ip: d.Ip.String(),
+			Id:       d.Id,
+			Hostname: d.Hostname,
 		}
 	}
 
@@ -314,10 +294,10 @@ func (s Server) GetWorkflows(ctx context.Context, _ GetWorkflowsRequestObject) (
 
 	workflowStructSlice := make([]struct {
 		Devices *[]struct {
-			Id   string  `json:"id"`
-			Ip   string  `json:"ip"`
-			Name *string `json:"name,omitempty"`
-			Type *string `json:"type,omitempty"`
+			Hostname string  `json:"hostname"`
+			Id       string  `json:"id"`
+			Name     *string `json:"name,omitempty"`
+			Type     *string `json:"type,omitempty"`
 		} `json:"devices,omitempty"`
 		Id     string `json:"id"`
 		Name   string `json:"name"`
@@ -327,10 +307,10 @@ func (s Server) GetWorkflows(ctx context.Context, _ GetWorkflowsRequestObject) (
 	for i, w := range workflows {
 		workflowStructSlice[i] = struct {
 			Devices *[]struct {
-				Id   string  `json:"id"`
-				Ip   string  `json:"ip"`
-				Name *string `json:"name,omitempty"`
-				Type *string `json:"type,omitempty"`
+				Hostname string  `json:"hostname"`
+				Id       string  `json:"id"`
+				Name     *string `json:"name,omitempty"`
+				Type     *string `json:"type,omitempty"`
 			} `json:"devices,omitempty"`
 			Id     string `json:"id"`
 			Name   string `json:"name"`
@@ -369,8 +349,11 @@ func (s Server) AssociateWorkflowDevices(ctx context.Context, request AssociateW
 }
 
 func (s Server) TriggerWorkflow(ctx context.Context, request TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error) {
-	err := s.workflowService.Trigger(ctx, request.Body.GestureId)
+	statuses, err := s.workflowService.Trigger(ctx, request.Body.GestureId)
 	if err != nil {
+		if errors.Is(err, persistence.ErrNotFound) {
+			return TriggerWorkflow404JSONResponse{Message: "workflow not found for this gesture"}, nil
+		}
 		refCode := logWithRef(err, "TriggerWorkflow")
 		return TriggerWorkflow500JSONResponse{
 			Message: internalErrorMessage,
@@ -378,5 +361,13 @@ func (s Server) TriggerWorkflow(ctx context.Context, request TriggerWorkflowRequ
 		}, nil
 	}
 
-	return TriggerWorkflow200Response{}, nil
+	resp := make(TriggerWorkflow207JSONResponse, len(statuses))
+	for i, s := range statuses {
+		resp[i].DeviceId = s.DeviceId
+		resp[i].Ok = s.Ok
+		if !s.Ok {
+			resp[i].Error = &s.Error
+		}
+	}
+	return resp, nil
 }

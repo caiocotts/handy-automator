@@ -1,0 +1,15 @@
+type: object
+properties:
+  deviceId:
+    type: string
+    example: abc123def456
+  ok:
+    type: boolean
+    example: true
+  error:
+    type: string
+    description: Error message if ok is false
+    example: "device not found on the network"
+required:
+  - deviceId
+  - ok

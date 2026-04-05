@@ -4,8 +4,8 @@ items:
   $ref: ./Device.yml
 example:
   - id: pXkHij_kJjXh
-    ip: 192.168.1.18
+    hostname: handy-1a2b3c.local
     name: Bedroom lamp
   - id: xzoYPLkuPuT0
-    ip: 192.168.1.42
+    hostname: handy-4d5e6f.local
     name: Christmas light

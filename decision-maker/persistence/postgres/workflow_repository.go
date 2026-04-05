@@ -25,7 +25,7 @@ func (r WorkflowRepository) Create(ctx context.Context, name, userId string) (mo
 	if err != nil {
 		return model.Workflow{}, err
 	}
-	_, err = r.database.ExecContext(ctx, `insert into "workflow" values ($1, $2, $3)`, id, name, userId)
+	_, err = r.database.ExecContext(ctx, `insert into "workflow" (id, name, user_id) values ($1, $2, $3)`, id, name, userId)
 	if err != nil {
 		return model.Workflow{}, persistence.ParseDBError(err)
 	}
@@ -40,13 +40,13 @@ func (r WorkflowRepository) Create(ctx context.Context, name, userId string) (mo
 func (r WorkflowRepository) Get(ctx context.Context, id string) (model.Workflow, error) {
 	w := model.Workflow{}
 	err := r.database.
-		QueryRowContext(ctx, `select id, name, user_id from "workflow" where id = $1`, id).
-		Scan(&w.Id, &w.Name, &w.UserId)
+		QueryRowContext(ctx, `select id, name, user_id, gesture_id, state from "workflow" where id = $1`, id).
+		Scan(&w.Id, &w.Name, &w.UserId, &w.GestureId, &w.State)
 	if err != nil {
 		return model.Workflow{}, persistence.ParseDBError(err)
 	}
 	q := `
-select id, ip, name, type
+select id, hostname, last_known_ip, name, type
 from device
          join workflow_device wd on device.id = wd.device_id
 where workflow_id = $1
@@ -59,11 +59,13 @@ where workflow_id = $1
 	var devices []model.Device
 	for rows.Next() {
 		d := model.Device{}
-		i := ""
-		if err := rows.Scan(&d.Id, &i, &d.Name, &d.Type); err != nil {
+		var rawIp sql.NullString
+		if err := rows.Scan(&d.Id, &d.Hostname, &rawIp, &d.Name, &d.Type); err != nil {
 			return model.Workflow{}, err
 		}
-		d.Ip = net.ParseIP(i)
+		if rawIp.Valid {
+			d.LastKnownIp = net.ParseIP(rawIp.String)
+		}
 		devices = append(devices, d)
 	}
 	w.Devices = devices
@@ -74,19 +76,19 @@ where workflow_id = $1
 func (r WorkflowRepository) GetByUserIdAndGestureId(ctx context.Context, userId string, gestureId int) (model.Workflow, error) {
 	w := model.Workflow{}
 	err := r.database.
-		QueryRowContext(ctx, `select id, name, user_id, gesture_id from workflow where user_id = $1 and gesture_id = $2`, userId, gestureId).
-		Scan(&w.Id, &w.Name, &w.UserId, &w.GestureId)
+		QueryRowContext(ctx, `select id, name, user_id, gesture_id, state from workflow where user_id = $1 and gesture_id = $2`, userId, gestureId).
+		Scan(&w.Id, &w.Name, &w.UserId, &w.GestureId, &w.State)
 	if err != nil {
 		return model.Workflow{}, persistence.ParseDBError(err)
 	}
 
-	sql := `
-select d.id, d.ip, d.name, d.type
+	query := `
+select d.id, d.hostname, d.last_known_ip, d.name, d.type
 from "device" d
          join "workflow_device" wd on d.id = wd.device_id
          join "workflow" w on w.id = wd.workflow_id
-where w.id = '0D2t1Dkx2YGk'`
-	rows, err := r.database.QueryContext(ctx, sql)
+where w.id = $1`
+	rows, err := r.database.QueryContext(ctx, query, w.Id)
 	if err != nil {
 		return model.Workflow{}, persistence.ParseDBError(err)
 	}
@@ -94,11 +96,13 @@ where w.id = '0D2t1Dkx2YGk'`
 	var devices []model.Device
 	for rows.Next() {
 		d := model.Device{}
-		i := ""
-		if err := rows.Scan(&d.Id, &i, &d.Name, &d.Type); err != nil {
+		var rawIp sql.NullString
+		if err := rows.Scan(&d.Id, &d.Hostname, &rawIp, &d.Name, &d.Type); err != nil {
 			return model.Workflow{}, persistence.ParseDBError(err)
 		}
-		d.Ip = net.ParseIP(i)
+		if rawIp.Valid {
+			d.LastKnownIp = net.ParseIP(rawIp.String)
+		}
 		devices = append(devices, d)
 	}
 	w.Devices = devices
@@ -107,7 +111,7 @@ where w.id = '0D2t1Dkx2YGk'`
 }
 
 func (r WorkflowRepository) GetAll(ctx context.Context) ([]model.Workflow, error) {
-	rows, err := r.database.QueryContext(ctx, `select * from "workflow"`)
+	rows, err := r.database.QueryContext(ctx, `select id, name, user_id, gesture_id, state from "workflow"`)
 	if err != nil {
 		return nil, persistence.ParseDBError(err)
 	}
@@ -115,7 +119,7 @@ func (r WorkflowRepository) GetAll(ctx context.Context) ([]model.Workflow, error
 	var workflows []model.Workflow
 	for rows.Next() {
 		w := model.Workflow{}
-		if err := rows.Scan(&w.Id, &w.Name, &w.UserId); err != nil {
+		if err := rows.Scan(&w.Id, &w.Name, &w.UserId, &w.GestureId, &w.State); err != nil {
 			return nil, persistence.ParseDBError(err)
 		}
 		workflows = append(workflows, w)
@@ -129,6 +133,17 @@ func (r WorkflowRepository) GetAll(ctx context.Context) ([]model.Workflow, error
 func (r WorkflowRepository) Update() (model.Workflow, error) {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (r WorkflowRepository) UpdateState(ctx context.Context, id, state string) error {
+	res, err := r.database.ExecContext(ctx, `update "workflow" set state = $1 where id = $2`, state, id)
+	if err != nil {
+		return persistence.ParseDBError(err)
+	}
+	if n, _ := res.RowsAffected(); n == 0 {
+		return persistence.ErrNotFound
+	}
+	return nil
 }
 
 func (r WorkflowRepository) Delete(context.Context, string) error {
