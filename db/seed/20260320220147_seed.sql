@@ -526,18 +526,7 @@ values (0, 'None'),
        (6, 'Victory'),
        (7, 'ILoveYou');
 
-insert into "device" (id, ip)
-values ('t48hxC0Fc_Nk', '192.168.1.43'),
-       ('9W4vDhY-Wjwf', '192.168.1.12'),
-       ('jbMNmaU5HIac', '192.168.1.63'),
-       ('FYfljim-zQXW', '192.168.1.76');
-
 insert into "workflow" (id, name, user_id, gesture_id)
 values ('0D2t1Dkx2YGk', 'Bedroom lights', 'JXg6slF4TDxY', 2);
-
-insert into workflow_device (workflow_id, device_id)
-values ('0D2t1Dkx2YGk', 't48hxC0Fc_Nk');
---        ('0D2t1Dkx2YGk', '9W4vDhY-Wjwf'),
---        ('0D2t1Dkx2YGk', 'FYfljim-zQXW');
 
 -- +goose Down
