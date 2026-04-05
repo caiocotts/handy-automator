@@ -14,7 +14,7 @@ pu: ##@Development Start the processing-unit in development mode
 .PHONY: pu
 
 test-pu: ##@Development Run the processing-unit test suite
-	@cd ./python-processing && python .\test_suite\test.py
+	@cd ./python-processing && python3 ./test_suite/test.py
 .PHONY: test
 
 gen-api: lint-api ##@Development Generate API code from the OpenAPI spec
