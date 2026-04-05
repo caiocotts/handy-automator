@@ -43,12 +43,6 @@ type LoginUserWithFaceJSONBody struct {
 	UserId string `json:"userId"`
 }
 
-// CreateDeviceJSONBody defines parameters for CreateDevice.
-type CreateDeviceJSONBody struct {
-	// Ip Device IP
-	Ip string `json:"ip"`
-}
-
 // CreateUserJSONBody defines parameters for CreateUser.
 type CreateUserJSONBody struct {
 	// Password The user's password
@@ -88,9 +82,6 @@ type LoginUserJSONRequestBody LoginUserJSONBody
 // LoginUserWithFaceJSONRequestBody defines body for LoginUserWithFace for application/json ContentType.
 type LoginUserWithFaceJSONRequestBody LoginUserWithFaceJSONBody
 
-// CreateDeviceJSONRequestBody defines body for CreateDevice for application/json ContentType.
-type CreateDeviceJSONRequestBody CreateDeviceJSONBody
-
 // CreateUserJSONRequestBody defines body for CreateUser for application/json ContentType.
 type CreateUserJSONRequestBody CreateUserJSONBody
 
@@ -120,9 +111,6 @@ type ServerInterface interface {
 	// Get all devices
 	// (GET /device)
 	GetDevices(w http.ResponseWriter, r *http.Request)
-	// Create a device
-	// (POST /device)
-	CreateDevice(w http.ResponseWriter, r *http.Request)
 	// Delete device by ID
 	// (DELETE /device/{id})
 	DeleteDevice(w http.ResponseWriter, r *http.Request, id string)
@@ -186,12 +174,6 @@ func (_ Unimplemented) RefreshAccessToken(w http.ResponseWriter, r *http.Request
 // Get all devices
 // (GET /device)
 func (_ Unimplemented) GetDevices(w http.ResponseWriter, r *http.Request) {
-	w.WriteHeader(http.StatusNotImplemented)
-}
-
-// Create a device
-// (POST /device)
-func (_ Unimplemented) CreateDevice(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -335,26 +317,6 @@ func (siw *ServerInterfaceWrapper) GetDevices(w http.ResponseWriter, r *http.Req
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.GetDevices(w, r)
-	}))
-
-	for _, middleware := range siw.HandlerMiddlewares {
-		handler = middleware(handler)
-	}
-
-	handler.ServeHTTP(w, r)
-}
-
-// CreateDevice operation middleware
-func (siw *ServerInterfaceWrapper) CreateDevice(w http.ResponseWriter, r *http.Request) {
-
-	ctx := r.Context()
-
-	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
-
-	r = r.WithContext(ctx)
-
-	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		siw.Handler.CreateDevice(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -795,9 +757,6 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Get(options.BaseURL+"/device", wrapper.GetDevices)
 	})
 	r.Group(func(r chi.Router) {
-		r.Post(options.BaseURL+"/device", wrapper.CreateDevice)
-	})
-	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/device/{id}", wrapper.DeleteDevice)
 	})
 	r.Group(func(r chi.Router) {
@@ -977,11 +936,11 @@ type GetDevicesResponseObject interface {
 type GetDevices200JSONResponse struct {
 	// Devices List of devices
 	Devices *[]struct {
+		// Hostname Device mDNS hostname
+		Hostname string `json:"hostname"`
+
 		// Id Device ID
 		Id string `json:"id"`
-
-		// Ip Device IP
-		Ip string `json:"ip"`
 
 		// Name Device name
 		Name *string `json:"name,omitempty"`
@@ -1006,60 +965,6 @@ type GetDevices500JSONResponse struct {
 }
 
 func (response GetDevices500JSONResponse) VisitGetDevicesResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(500)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type CreateDeviceRequestObject struct {
-	Body *CreateDeviceJSONRequestBody
-}
-
-type CreateDeviceResponseObject interface {
-	VisitCreateDeviceResponse(w http.ResponseWriter) error
-}
-
-type CreateDevice201JSONResponse struct {
-	// Id Device ID
-	Id string `json:"id"`
-
-	// Ip Device IP
-	Ip string `json:"ip"`
-
-	// Name Device name
-	Name *string `json:"name,omitempty"`
-
-	// Type Device type
-	Type *string `json:"type,omitempty"`
-}
-
-func (response CreateDevice201JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(201)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type CreateDevice400JSONResponse struct {
-	Message string `json:"message"`
-}
-
-func (response CreateDevice400JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(400)
-
-	return json.NewEncoder(w).Encode(response)
-}
-
-type CreateDevice500JSONResponse struct {
-	Message string `json:"message"`
-
-	// Ref A reference code which can be used to find when the error occurred in the logs.
-	Ref string `json:"ref"`
-}
-
-func (response CreateDevice500JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(500)
 
@@ -1116,11 +1021,11 @@ type GetDeviceResponseObject interface {
 }
 
 type GetDevice200JSONResponse struct {
+	// Hostname Device mDNS hostname
+	Hostname string `json:"hostname"`
+
 	// Id Device ID
 	Id string `json:"id"`
-
-	// Ip Device IP
-	Ip string `json:"ip"`
 
 	// Name Device name
 	Name *string `json:"name,omitempty"`
@@ -1280,11 +1185,11 @@ type GetWorkflows200JSONResponse struct {
 	Workflows *[]struct {
 		// Devices List of devices
 		Devices *[]struct {
+			// Hostname Device mDNS hostname
+			Hostname string `json:"hostname"`
+
 			// Id Device ID
 			Id string `json:"id"`
-
-			// Ip Device IP
-			Ip string `json:"ip"`
 
 			// Name Device name
 			Name *string `json:"name,omitempty"`
@@ -1330,11 +1235,11 @@ type CreateWorkflowResponseObject interface {
 type CreateWorkflow201JSONResponse struct {
 	// Devices List of devices
 	Devices *[]struct {
+		// Hostname Device mDNS hostname
+		Hostname string `json:"hostname"`
+
 		// Id Device ID
 		Id string `json:"id"`
-
-		// Ip Device IP
-		Ip string `json:"ip"`
 
 		// Name Device name
 		Name *string `json:"name,omitempty"`
@@ -1387,12 +1292,19 @@ type TriggerWorkflowResponseObject interface {
 	VisitTriggerWorkflowResponse(w http.ResponseWriter) error
 }
 
-type TriggerWorkflow200Response struct {
+type TriggerWorkflow207JSONResponse []struct {
+	DeviceId string `json:"deviceId"`
+
+	// Error Error message if ok is false
+	Error *string `json:"error,omitempty"`
+	Ok    bool    `json:"ok"`
 }
 
-func (response TriggerWorkflow200Response) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
-	w.WriteHeader(200)
-	return nil
+func (response TriggerWorkflow207JSONResponse) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(207)
+
+	return json.NewEncoder(w).Encode(response)
 }
 
 type TriggerWorkflow401Response struct {
@@ -1401,6 +1313,17 @@ type TriggerWorkflow401Response struct {
 func (response TriggerWorkflow401Response) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
 	w.WriteHeader(401)
 	return nil
+}
+
+type TriggerWorkflow404JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response TriggerWorkflow404JSONResponse) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
 }
 
 type TriggerWorkflow500JSONResponse struct {
@@ -1455,11 +1378,11 @@ type GetWorkflowResponseObject interface {
 type GetWorkflow200JSONResponse struct {
 	// Devices List of devices
 	Devices *[]struct {
+		// Hostname Device mDNS hostname
+		Hostname string `json:"hostname"`
+
 		// Id Device ID
 		Id string `json:"id"`
-
-		// Ip Device IP
-		Ip string `json:"ip"`
 
 		// Name Device name
 		Name *string `json:"name,omitempty"`
@@ -1516,11 +1439,11 @@ type UpdateWorkflowResponseObject interface {
 type UpdateWorkflow200JSONResponse struct {
 	// Devices List of devices
 	Devices *[]struct {
+		// Hostname Device mDNS hostname
+		Hostname string `json:"hostname"`
+
 		// Id Device ID
 		Id string `json:"id"`
-
-		// Ip Device IP
-		Ip string `json:"ip"`
 
 		// Name Device name
 		Name *string `json:"name,omitempty"`
@@ -1633,9 +1556,6 @@ type StrictServerInterface interface {
 	// Get all devices
 	// (GET /device)
 	GetDevices(ctx context.Context, request GetDevicesRequestObject) (GetDevicesResponseObject, error)
-	// Create a device
-	// (POST /device)
-	CreateDevice(ctx context.Context, request CreateDeviceRequestObject) (CreateDeviceResponseObject, error)
 	// Delete device by ID
 	// (DELETE /device/{id})
 	DeleteDevice(ctx context.Context, request DeleteDeviceRequestObject) (DeleteDeviceResponseObject, error)
@@ -1806,37 +1726,6 @@ func (sh *strictHandler) GetDevices(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(GetDevicesResponseObject); ok {
 		if err := validResponse.VisitGetDevicesResponse(w); err != nil {
-			sh.options.ResponseErrorHandlerFunc(w, r, err)
-		}
-	} else if response != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
-	}
-}
-
-// CreateDevice operation middleware
-func (sh *strictHandler) CreateDevice(w http.ResponseWriter, r *http.Request) {
-	var request CreateDeviceRequestObject
-
-	var body CreateDeviceJSONRequestBody
-	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
-		return
-	}
-	request.Body = &body
-
-	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
-		return sh.ssi.CreateDevice(ctx, request.(CreateDeviceRequestObject))
-	}
-	for _, middleware := range sh.middlewares {
-		handler = middleware(handler, "CreateDevice")
-	}
-
-	response, err := handler(r.Context(), w, r, request)
-
-	if err != nil {
-		sh.options.ResponseErrorHandlerFunc(w, r, err)
-	} else if validResponse, ok := response.(CreateDeviceResponseObject); ok {
-		if err := validResponse.VisitCreateDeviceResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -2184,52 +2073,53 @@ func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

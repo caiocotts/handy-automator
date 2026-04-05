@@ -5,5 +5,12 @@ type Workflow struct {
 	Name      string
 	Devices   []Device
 	UserId    string
-	GestureId string
+	GestureId *string
+	State     string
+}
+
+type DeviceTriggerStatus struct {
+	DeviceId string
+	Ok       bool
+	Error    string
 }

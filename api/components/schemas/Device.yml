@@ -4,10 +4,10 @@ properties:
     type: string
     description: Device ID
     example: pXkHij_kJjXh
-  ip:
+  hostname:
     type: string
-    description: Device IP
-    example: 192.168.1.18
+    description: Device mDNS hostname
+    example: handy-1a2b3c.local
   name:
     type: string
     description: Device name
@@ -18,4 +18,4 @@ properties:
     example: Light
 required:
   - id
-  - ip
+  - hostname

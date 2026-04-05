@@ -3,8 +3,9 @@ package model
 import "net"
 
 type Device struct {
-	Id   string
-	Ip   net.IP
-	Name *string
-	Type *string
+	Id          string
+	Hostname    string
+	LastKnownIp net.IP
+	Name        *string
+	Type        *string
 }

@@ -5,10 +5,10 @@ import (
 	"decisionMaker/model"
 	"decisionMaker/persistence"
 	"errors"
-	"net"
+	"strings"
 )
 
-var ErrInvalidIPFormat = errors.New("malformed IP address")
+var ErrInvalidHostname = errors.New("malformed hostname")
 
 type Service struct {
 	deviceRepository persistence.DeviceRepository
@@ -18,13 +18,12 @@ func NewService(r persistence.DeviceRepository) *Service {
 	return &Service{deviceRepository: r}
 }
 
-func (s Service) Create(ctx context.Context, ip string) (model.Device, error) {
-	i := net.ParseIP(ip)
-	if i == nil {
-		return model.Device{}, ErrInvalidIPFormat
+func (s Service) Create(ctx context.Context, hostname string) (model.Device, error) {
+	if strings.TrimSpace(hostname) == "" {
+		return model.Device{}, ErrInvalidHostname
 	}
 
-	d, err := s.deviceRepository.Create(ctx, i)
+	d, err := s.deviceRepository.Create(ctx, hostname)
 	if err != nil {
 		return model.Device{}, err
 	}

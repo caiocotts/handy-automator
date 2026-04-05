@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"decisionMaker/api"
 	"decisionMaker/config"
 	"decisionMaker/consts"
 	"decisionMaker/persistence/postgres"
 	"decisionMaker/service/auth"
 	"decisionMaker/service/device"
+	"decisionMaker/service/discovery"
 	"decisionMaker/service/user"
 	"decisionMaker/service/workflow"
 	"fmt"
@@ -31,12 +33,17 @@ func main() {
 	userRepository := postgres.NewUserRepository(db)
 	workflowRepository := postgres.NewWorkflowRepository(db)
 
+	discoveryService := discovery.NewService(deviceRepository)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+	go discoveryService.Start(ctx)
+
 	deviceService := device.NewService(deviceRepository)
 	userService := user.NewService(userRepository)
-	workflowService := workflow.NewService(workflowRepository)
+	workflowService := workflow.NewService(workflowRepository, discoveryService)
 	authService := auth.NewService(userRepository)
 
-	server := api.NewServer(deviceService, userService, workflowService, authService)
+	server := api.NewServer(deviceService, userService, workflowService, authService, discoveryService)
 
 	router := chi.NewMux()
 	router.Use(middleware.Logger)

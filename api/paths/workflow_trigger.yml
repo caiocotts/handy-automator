@@ -14,13 +14,21 @@ post:
             gestureId:
               type: integer
               description: Gesture ID
-              example: "2"
+              example: 2
           required:
             - gestureId
   responses:
-    '200':
-      description: Workflow triggered
+    '207':
+      description: Per-device trigger results
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/DeviceTriggerStatus.yml
     '401':
       $ref: ../components/responses/NotAuthorized.yml
+    '404':
+      $ref: ../components/responses/NotFound.yml
     '500':
       $ref: ../components/responses/InternalServerError.yml

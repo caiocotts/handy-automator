@@ -225,36 +225,6 @@ paths:
                     $ref: '#/components/schemas/DeviceList'
         '500':
           $ref: '#/components/responses/InternalServerError'
-    post:
-      summary: Create a device
-      operationId: createDevice
-      description: Register a new device onto the system. (This should be used by edge devices who wish to publish their IPs)
-      security:
-        - accessToken: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                ip:
-                  type: string
-                  description: Device IP
-                  example: 192.168.1.18
-              required:
-                - ip
-      responses:
-        '201':
-          description: Device record successfully created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Device'
-        '400':
-          $ref: '#/components/responses/BadRequest'
-        '500':
-          $ref: '#/components/responses/InternalServerError'
   /device/{id}:
     get:
       summary: Get device by ID
@@ -366,14 +336,22 @@ paths:
                 gestureId:
                   type: integer
                   description: Gesture ID
-                  example: '2'
+                  example: 2
               required:
                 - gestureId
       responses:
-        '200':
-          description: Workflow triggered
+        '207':
+          description: Per-device trigger results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceTriggerStatus'
         '401':
           $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
   /workflow/{id}:
@@ -536,10 +514,10 @@ components:
           type: string
           description: Device ID
           example: pXkHij_kJjXh
-        ip:
+        hostname:
           type: string
-          description: Device IP
-          example: 192.168.1.18
+          description: Device mDNS hostname
+          example: handy-1a2b3c.local
         name:
           type: string
           description: Device name
@@ -550,7 +528,7 @@ components:
           example: Light
       required:
         - id
-        - ip
+        - hostname
     DeviceList:
       type: array
       description: List of devices
@@ -558,10 +536,10 @@ components:
         $ref: '#/components/schemas/Device'
       example:
         - id: pXkHij_kJjXh
-          ip: 192.168.1.18
+          hostname: handy-1a2b3c.local
           name: Bedroom lamp
         - id: xzoYPLkuPuT0
-          ip: 192.168.1.42
+          hostname: handy-4d5e6f.local
           name: Christmas light
     Workflow:
       type: object
@@ -593,6 +571,22 @@ components:
         - id: XXdBr6WRNvmB
           name: Turn on living room lights
           userId: aV8NwwxHuh3G
+    DeviceTriggerStatus:
+      type: object
+      properties:
+        deviceId:
+          type: string
+          example: abc123def456
+        ok:
+          type: boolean
+          example: true
+        error:
+          type: string
+          description: Error message if ok is false
+          example: device not found on the network
+      required:
+        - deviceId
+        - ok
   responses:
     BadRequest:
       description: Bad Request
