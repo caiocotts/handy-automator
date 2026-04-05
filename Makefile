@@ -53,3 +53,7 @@ check-db-status: ##@Miscellaneous Check if the database is ready to accept conne
 run-py: ##@Development Run the main.py file and start the program
 	@cd ./python-processing && uv run main.py
 .PHONY: run-py
+
+test: ##@Development Run the test suite.
+	@cd ./python-processing && python .\test_suite\test.py
+.PHONY: test
