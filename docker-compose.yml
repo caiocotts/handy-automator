@@ -9,18 +9,6 @@ services:
     volumes:
       - ./scripts/check-db-connection.sh:/check-db-connection.sh
       - pg_data:/var/lib/postgresql
-  development:
-    build:
-      context: docker/dev
-    environment:
-      GOCACHE: /go-cache
-    ports:
-      - "3000:3000"
-    volumes:
-      - ./decision-maker:/app
-      - ./tmp/.go/pkg:/go/pkg
-      - ./tmp/.go-cache:/go-cache
-      - .env:/.env
   tool:
     build:
       context: docker/tool
