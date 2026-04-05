@@ -12,8 +12,8 @@ tmp
 .png
 __pycache__
 .npy
-python-processing/database/embeddings
-python-processing/database/auth_users/
+processing-unit/database/embeddings
+processing-unit/database/auth_users/
 
 #Mobile App
 node_modules

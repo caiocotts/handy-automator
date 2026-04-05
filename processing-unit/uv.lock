@@ -1427,7 +1427,7 @@ wheels = [
 ]
 
 [[package]]
-name = "python-processing"
+name = "processing-unit"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
