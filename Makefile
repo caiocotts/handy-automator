@@ -1,5 +1,5 @@
 GOOSE_OPTS=-dir /db/migrations postgres
-RUN=docker compose run --rm development
+TOOL=docker compose run --rm tool
 
 help: ##@Miscellaneous Show this help message
 	@python3 ./scripts/help.py
@@ -9,12 +9,12 @@ dev: ##@Development Start handy-automator in development mode
 	@docker compose up development
 .PHONY: dev
 
-gen-api: ##@Development Generate API code from the OpenAPI spec
-	@$(RUN) go generate ./api/...
+gen-api: lint-api ##@Development Generate API code from the OpenAPI spec
+	@$(TOOL) go generate ./api/...
 .PHONY: gen-api
 
 lint-api: ##@Development Lint OpenAPI spec
-	@docker compose run --rm --workdir /api development redocly lint /api/openapi.yml # can't use $(RUN) cause I need to specify the workdir
+	@docker compose run --rm --workdir /api tool redocly lint /api/openapi.yml # can't use $(TOOL) cause I need to specify the workdir
 .PHONY: lint-api
 
 start-db: ##@Database Instantiate a database container
@@ -22,24 +22,28 @@ start-db: ##@Database Instantiate a database container
 .PHONY: start-db
 
 stop-db: ##@Database Stop the database container
-	@docker compose down postgres
+	@docker compose stop postgres
 .PHONY: stop-db
 
 destroy-db: ##@Database Stop the database container and erase all its data
 	@docker compose down postgres -v
 .PHONY: destroy-db
 
+seed-db: start-db check-db-status ##@Database Seed the database with sample data
+	@$(TOOL) goose -dir /db/seed postgres -no-versioning up
+.PHONY: seed-db
+
 mup: start-db check-db-status ##@Database Apply all migrations
-	@$(RUN) goose $(GOOSE_OPTS) up
+	@$(TOOL) goose $(GOOSE_OPTS) up
 .PHONY: mup
 
 mdown: start-db check-db-status ##@Database Undo the last migration
-	@$(RUN) goose $(GOOSE_OPTS) down
+	@$(TOOL) goose $(GOOSE_OPTS) down
 .PHONY: mdown
 
 migration: ##@Database Create a new migration SQL file in db/migrations
 	@$(if $(strip $(name)),,$(error Usage: make migration name=name_of_migration_file))
-	@$(RUN) goose $(GOOSE_OPTS) create $(name) sql
+	@$(TOOL) goose $(GOOSE_OPTS) create $(name) sql
 .PHONY: migration
 
 check-db-status: ##@Miscellaneous Check if the database is ready to accept connections (internal)

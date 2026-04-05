@@ -1,6 +1,7 @@
 get:
   summary: Get all devices
   operationId: getDevices
+  description: Get a list of all edge devices on the network.
   security:
     - accessToken: [ ]
   responses:
@@ -13,9 +14,12 @@ get:
             properties:
               devices:
                 $ref: ../components/schemas/DeviceList.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
 post:
   summary: Create a device
   operationId: createDevice
+  description: Register a new device onto the system. (This should be used by edge devices who wish to publish their IPs)
   security:
     - accessToken: [ ]
   requestBody:
@@ -40,3 +44,5 @@ post:
             $ref: ../components/schemas/Device.yml
     '400':
       $ref: ../components/responses/BadRequest.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

@@ -1,0 +1,26 @@
+post:
+  summary: Trigger a workflow
+  operationId: triggerWorkflow
+  description: Trigger the workflow corresponding to the given hand gesture, for the currently authenticated user.
+  security:
+    - accessToken: [ ]
+  requestBody:
+    required: true
+    content:
+      application/json:
+        schema:
+          type: object
+          properties:
+            gestureId:
+              type: integer
+              description: Gesture ID
+              example: "2"
+          required:
+            - gestureId
+  responses:
+    '200':
+      description: Workflow triggered
+    '401':
+      $ref: ../components/responses/NotAuthorized.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

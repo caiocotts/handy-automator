@@ -1,6 +1,7 @@
 get:
   summary: Get workflow by ID
   operationId: getWorkflow
+  description: Get information relating to the workflow matching the given ID.
   security:
     - accessToken: [ ]
   parameters:
@@ -19,9 +20,12 @@ get:
             $ref: ../components/schemas/Workflow.yml
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
 delete:
   summary: Delete workflow by ID
   operationId: deleteWorkflow
+  description: Delete the workflow matching the given ID.
   security:
     - accessToken: [ ]
   parameters:
@@ -39,6 +43,7 @@ delete:
 patch:
   summary: Update workflow
   operationId: updateWorkflow
+  description: Update workflow information. For adding devices to the workflow see <a href=#operation/associateWorkflowDevices>associateWorkflowDevices</a>.
   security:
     - accessToken: [ ]
   parameters:

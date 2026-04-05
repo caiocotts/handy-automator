@@ -7,7 +7,7 @@ from mediapipe.tasks import python
 from mediapipe.tasks.python import vision
 
 # --- Configuration ---
-model_path = './gesture_recognizer.task'
+model_path = './database/models/gesture_recognizer.task'
 BaseOptions = mp.tasks.BaseOptions
 GestureRecognizer = mp.tasks.vision.GestureRecognizer
 GestureRecognizerOptions = mp.tasks.vision.GestureRecognizerOptions
@@ -139,3 +139,24 @@ def create_recognizer(options):
         - a GestureRecognizer object created from the options
     """
     return GestureRecognizer.create_from_options(options)
+
+def get_hardcode_index(hand_gesture : str)-> int:
+    match hand_gesture:
+        case "None":
+            return 0
+        case "Closed_Fist":
+            return 1
+        case "Open_Palm":
+            return 2
+        case "Pointing_Up":
+            return 3
+        case "Thumb_Down":
+            return 4
+        case "Thumb_Up":
+            return 5
+        case "Victory":
+            return 6
+        case "ILoveYou":
+            return 7
+        case _:
+            return 0

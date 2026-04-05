@@ -9,5 +9,15 @@ import (
 )
 
 var GetInstance = sync.OnceValues(func() (*sql.DB, error) {
-	return sql.Open("pgx", config.DBUrl)
+	db, err := sql.Open("pgx", config.DBUrl)
+	if err != nil {
+		return nil, err
+	}
+
+	err = db.Ping()
+	if err != nil {
+		return nil, err
+	}
+
+	return db, nil
 })

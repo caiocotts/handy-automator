@@ -18,6 +18,7 @@ export default function HomeScreen() {
         />
       }>
       <ThemedView style={styles.titleContainer}>
+
         <ThemedText type="title">Welcome to Handy Automator</ThemedText>
         <HelloWave />
       </ThemedView>

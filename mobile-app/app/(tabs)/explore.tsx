@@ -11,7 +11,11 @@ import { Fonts } from '@/constants/theme';
 import { Button } from '@react-navigation/elements';
 import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 
+<<<<<<< HEAD
 import React, {useState} from 'react';
+=======
+import React, {useEffect, useState} from 'react';
+>>>>>>> 930d61b2a4b070d2d2304a5e5afee67aba7485bd
 import {Text, TouchableOpacity, View} from 'react-native';
 import {Link} from "expo-router";
 
@@ -27,6 +31,7 @@ export default function TabTwoScreen() {
     const onPress = () => setIsOn(prev => !prev);
 
 
+<<<<<<< HEAD
     // const device = async {
     //     GET deviceName;
     //     GET deviceType;
@@ -41,6 +46,38 @@ export default function TabTwoScreen() {
     // let isON;
     // let device = [deviceName, deviceType, isOn]
     // This is for automatically adding more devices.
+=======
+    const [devices, setDevices] = useState<any[]>([]);
+    useEffect(() => {
+        getDevices();
+    }, []);
+    const getDevices = async () => {
+        try {
+            const login = await fetch("http://localhost:3000/auth/login", {
+                method: "POST",
+                headers: {"Content-Type": "application/json",},
+                body: JSON.stringify({
+                    accessToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzM1NDQ5MzMsImlhdCI6MTc3MzUzNzczMywiaXNzIjoiZGVjaXNpb24tbWFrZXIiLCJzdWIiOiJ0QjJXbUZ4eXIzcHQifQ.halo4p0QLYRXsroV5MANlq5JyZAb7W792sptdPeqGlI",
+                    refreshToken: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzYyMTYxMzMsImlhdCI6MTc3MzUzNzczMywiaXNzIjoiZGVjaXNpb24tbWFrZXIiLCJzdWIiOiJ0QjJXbUZ4eXIzcHQifQ.HM2IFo5ks7R3SlFMf556XiNe-BK0tV2-rukaz2cSD1g",
+                    userId: "tB2WmFxyr3pt",
+                    username: "caiocotts"
+                }),
+            });
+            const loginData = await login.json();
+            const token = loginData.accessToken;
+            const response = await fetch("http://localhost:3000/api/device", {
+                method: "GET",
+                headers: {"Content-Type": "application/json", Authorization: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE3NzM1NDQ5MzMsImlhdCI6MTc3MzUzNzczMywiaXNzIjoiZGVjaXNpb24tbWFrZXIiLCJzdWIiOiJ0QjJXbUZ4eXIzcHQifQ.halo4p0QLYRXsroV5MANlq5JyZAb7W792sptdPeqGlI',},
+            });
+            const data = await response.json();
+            setDevices(data);
+        } catch (error) {
+            console.error("Error fetching devices:", error);
+        }
+    };
+
+
+>>>>>>> 930d61b2a4b070d2d2304a5e5afee67aba7485bd
     return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
@@ -52,6 +89,17 @@ export default function TabTwoScreen() {
           style={styles.headerImage}
         />
       }>
+
+        <View>
+
+            <TouchableOpacity style={styles.button} onPress={getDevices}>
+                <Text style={styles.addButtonText}>Get Devices</Text>
+            </TouchableOpacity>
+
+            {devices.map((device, index) => (
+                <Text key={index}>{JSON.stringify(device)}</Text>
+            ))}
+        </View>
       <ThemedView style={styles.titleContainer}>
         <ThemedText
           type="title"

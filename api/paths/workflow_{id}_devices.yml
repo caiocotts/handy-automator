@@ -1,6 +1,7 @@
 put:
   summary: Associate devices to a workflow
   operationId: associateWorkflowDevices
+  description: Associate new devices to a workflow. The request body should contain all devices which should be part of the workflow matching the given id. You may also use this endpoint for removing devices from the workflow, by simply ommiting them from the request body. That is to say, if a workflow contains devices 1, 2, and 3, by using this endpoint with only devices 1 and 3, the workflow will now contain only devices 1 and 3.
   security:
     - accessToken: [ ]
   parameters:
@@ -17,17 +18,31 @@ put:
         schema:
           properties:
             devices:
-              $ref: ../components/schemas/DeviceList.yml
+              description: An array of device IDs to associate with this workflow
+              type: array
+              items:
+                type: string
+                example: pXkHij_kJjXh
+          required:
+            - devices
   responses:
-    '201':
+    '200':
       description: Device associated to workflow successfully
       content:
         application/json:
           schema:
             properties:
               devices:
-                $ref: ../components/schemas/DeviceList.yml
+                description: An array of device IDs associated with this workflow
+                type: array
+                items:
+                  type: string
+                  example: pXkHij_kJjXh
+            required:
+              - devices
     '400':
       $ref: ../components/responses/BadRequest.yml
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

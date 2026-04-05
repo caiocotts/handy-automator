@@ -2,13 +2,15 @@ import cv2
 # Module Imports
 import face_recognition as fr
 import gesture_recognition as gr
+import api_interface as api
 import pose as pr
 import mediapipe as mp
 import time
 import config
 
 
-pr_model_path = './pose_landmarker_full.task' 
+pr_model_path = './database/models/pose_landmarker_full.task'
+ 
 pr_options = mp.tasks.vision.PoseLandmarkerOptions(
     base_options=gr.BaseOptions(model_asset_path=pr_model_path),
     running_mode=gr.VisionRunningMode.LIVE_STREAM,
@@ -38,6 +40,22 @@ def main():
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
 
+                username = face_data[0][1]
+                if username not in fr.auth_tokens and username in fr.known_embeddings:
+
+                    embedding = fr.known_embeddings[username]
+                    embedding = embedding.tolist()
+                    
+                    #REMOVE WHEN ENDPOINT IS READY
+                    print(embedding,username)
+                    auth_token = api.auth_user_api_call(embedding, username)
+                    print(f'auth token generated')
+                    if auth_token:
+                        # Store the token
+                        fr.auth_tokens[username] = auth_token
+            
+                
+
                 # 2. Run gesture and pose detections
                 gesture_rec.recognize_async(mp_image, timestamp)
                 pose_rec.detect_async(mp_image, timestamp)
@@ -64,7 +82,9 @@ def main():
                                         # SUCCESS: Format the final display string
                                         display_name = name.upper() if name != "Unknown" else "UNKNOWN"
                                         label_text = f"{display_name} + hand"
-
+                                        gesture_id = gr.get_hardcode_index(gr.latest_result.gestures[0][0].category_name)
+                                        if gesture_id != 0:
+                                            api.workflow_api_call( gesture_id, fr.auth_tokens[name])
                                         cv2.putText(frame, label_text, (fx, fy-10),
                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
 

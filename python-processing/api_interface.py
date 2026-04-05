@@ -1,22 +1,42 @@
 import requests
-import json
 
-def get_public_ipv4():
+
+# Need to adjust the header names according to what the api specs say
+
+def ping():
     try:
-        # Use an external API that returns only the IP address
-        response = requests.get('https://api.ipify.org/?format=json')
-        if response.status_code == 200:
-            return response.json()['ip']
-        else:
-            return f"Error: {response.status_code}"
+        r = requests.get("http://localhost:3000/api/ping")
+        print(r.json())
+        return r.status_code == 200
     except requests.exceptions.RequestException as e:
-        return f"An error occurred: {e}"
+        print(f"Error: {e}")
+        return False
 
 
-def ping(ip_address=get_public_ipv4(), port="3000"):
-    r = requests.get("http://" + ip_address + ":" + port + "/api/ping")
-    print(r.text)
-    return r.status_code == 200
+def auth_user_api_call(embeddings: list[float], username: str) -> str | None:
+    try:
+        payload = {"userId": username, "embedding": embeddings}
+        r = requests.post("http://localhost:3000/api/auth/login/face", json=payload, headers=f"")
+        if r.status_code == 200:
+            token_json = r.json()
+            return token_json["accessToken"]
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return None
+
+
+def workflow_api_call(gesture_id: int, auth_token: str):
+    try:
+        payload = {"gestureId": gesture_id}  # Still need to check header names
+        header = {"Authorization": f"Bearer {auth_token}"}
+        r = requests.post("http://localhost:3000/api/workflow/trigger", json=payload, headers=header)
+        # print(auth_token)
+        if r.status_code == 200:
+            return r.json()  # Check what the output is
+    except requests.exceptions.RequestException as e:
+        print(f"Error: {e}")
+        return None
+
 
 """ HIGH PRIO
     - Get all workflows
@@ -30,4 +50,3 @@ def ping(ip_address=get_public_ipv4(), port="3000"):
 """ OPTIONAL
     - Adjust camera settings (ISO, exposure, etc.) or just auto
 """
-

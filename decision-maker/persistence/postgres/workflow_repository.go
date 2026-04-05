@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"decisionMaker/model"
 	"decisionMaker/persistence"
-	"errors"
+	"net"
 
 	gonanoid "github.com/matoous/go-nanoid/v2"
 )
@@ -27,7 +27,7 @@ func (r WorkflowRepository) Create(ctx context.Context, name, userId string) (mo
 	}
 	_, err = r.database.ExecContext(ctx, `insert into "workflow" values ($1, $2, $3)`, id, name, userId)
 	if err != nil {
-		return model.Workflow{}, err
+		return model.Workflow{}, persistence.ParseDBError(err)
 	}
 	return model.Workflow{
 		Id:     id,
@@ -39,27 +39,84 @@ func (r WorkflowRepository) Create(ctx context.Context, name, userId string) (mo
 
 func (r WorkflowRepository) Get(ctx context.Context, id string) (model.Workflow, error) {
 	w := model.Workflow{}
-	err := r.database.QueryRowContext(ctx, `select id, name from "workflow" where id = $1`, id).Scan(&w.Id, &w.Name)
-	if errors.Is(err, sql.ErrNoRows) {
-		return model.Workflow{}, persistence.ErrNotFound
-	}
+	err := r.database.
+		QueryRowContext(ctx, `select id, name, user_id from "workflow" where id = $1`, id).
+		Scan(&w.Id, &w.Name, &w.UserId)
 	if err != nil {
-		return model.Workflow{}, err
+		return model.Workflow{}, persistence.ParseDBError(err)
 	}
+	q := `
+select id, ip, name, type
+from device
+         join workflow_device wd on device.id = wd.device_id
+where workflow_id = $1
+`
+	rows, err := r.database.QueryContext(ctx, q, id)
+	if err != nil {
+		return model.Workflow{}, persistence.ParseDBError(err)
+	}
+	defer rows.Close()
+	var devices []model.Device
+	for rows.Next() {
+		d := model.Device{}
+		i := ""
+		if err := rows.Scan(&d.Id, &i, &d.Name, &d.Type); err != nil {
+			return model.Workflow{}, err
+		}
+		d.Ip = net.ParseIP(i)
+		devices = append(devices, d)
+	}
+	w.Devices = devices
+
+	return w, nil
+}
+
+func (r WorkflowRepository) GetByUserIdAndGestureId(ctx context.Context, userId string, gestureId int) (model.Workflow, error) {
+	w := model.Workflow{}
+	err := r.database.
+		QueryRowContext(ctx, `select id, name, user_id, gesture_id from workflow where user_id = $1 and gesture_id = $2`, userId, gestureId).
+		Scan(&w.Id, &w.Name, &w.UserId, &w.GestureId)
+	if err != nil {
+		return model.Workflow{}, persistence.ParseDBError(err)
+	}
+
+	sql := `
+select d.id, d.ip, d.name, d.type
+from "device" d
+         join "workflow_device" wd on d.id = wd.device_id
+         join "workflow" w on w.id = wd.workflow_id
+where w.id = '0D2t1Dkx2YGk'`
+	rows, err := r.database.QueryContext(ctx, sql)
+	if err != nil {
+		return model.Workflow{}, persistence.ParseDBError(err)
+	}
+	defer rows.Close()
+	var devices []model.Device
+	for rows.Next() {
+		d := model.Device{}
+		i := ""
+		if err := rows.Scan(&d.Id, &i, &d.Name, &d.Type); err != nil {
+			return model.Workflow{}, persistence.ParseDBError(err)
+		}
+		d.Ip = net.ParseIP(i)
+		devices = append(devices, d)
+	}
+	w.Devices = devices
+
 	return w, nil
 }
 
 func (r WorkflowRepository) GetAll(ctx context.Context) ([]model.Workflow, error) {
 	rows, err := r.database.QueryContext(ctx, `select * from "workflow"`)
 	if err != nil {
-		return nil, err
+		return nil, persistence.ParseDBError(err)
 	}
 	defer rows.Close()
 	var workflows []model.Workflow
 	for rows.Next() {
-		var w model.Workflow
+		w := model.Workflow{}
 		if err := rows.Scan(&w.Id, &w.Name, &w.UserId); err != nil {
-			return nil, err
+			return nil, persistence.ParseDBError(err)
 		}
 		workflows = append(workflows, w)
 	}
@@ -74,7 +131,35 @@ func (r WorkflowRepository) Update() (model.Workflow, error) {
 	panic("implement me")
 }
 
-func (r WorkflowRepository) Delete(ctx context.Context, id string) error {
+func (r WorkflowRepository) Delete(context.Context, string) error {
 	//TODO implement me
 	panic("implement me")
+}
+
+func (r WorkflowRepository) AssociateDevices(ctx context.Context, workflowId string, deviceIds []string) ([]string, error) {
+	tx, err := r.database.Begin()
+	if err != nil {
+		return nil, persistence.ParseDBError(err)
+	}
+
+	_, err = tx.ExecContext(ctx, `delete from workflow_device where workflow_id = $1`, workflowId)
+	if err != nil {
+		tx.Rollback()
+		return nil, persistence.ParseDBError(err)
+	}
+
+	for _, deviceId := range deviceIds {
+		_, err = tx.ExecContext(ctx, `insert into workflow_device (workflow_id, device_id) values ($1, $2)`, workflowId, deviceId)
+		if err != nil {
+			tx.Rollback()
+			return nil, persistence.ParseDBError(err)
+		}
+	}
+
+	err = tx.Commit()
+	if err != nil {
+		return nil, err
+	}
+
+	return deviceIds, nil
 }

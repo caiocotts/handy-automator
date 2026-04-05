@@ -12,8 +12,12 @@ var (
 	JWTSecret []byte
 )
 
-func Load() {
-	err := godotenv.Load("../.env")
+func Load(envFile ...string) {
+	f := "../.env"
+	if len(envFile) > 0 {
+		f = envFile[0]
+	}
+	err := godotenv.Load(f)
 	if err != nil {
 		log.Fatal("error: loading .env:", err)
 	}

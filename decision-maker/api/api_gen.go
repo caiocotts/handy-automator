@@ -35,6 +35,14 @@ type LoginUserJSONBody struct {
 	Username string `json:"username"`
 }
 
+// LoginUserWithFaceJSONBody defines parameters for LoginUserWithFace.
+type LoginUserWithFaceJSONBody struct {
+	Embedding []float64 `json:"embedding"`
+
+	// UserId User Id
+	UserId string `json:"userId"`
+}
+
 // CreateDeviceJSONBody defines parameters for CreateDevice.
 type CreateDeviceJSONBody struct {
 	// Ip Device IP
@@ -56,6 +64,12 @@ type CreateWorkflowJSONBody struct {
 	Name string `json:"name"`
 }
 
+// TriggerWorkflowJSONBody defines parameters for TriggerWorkflow.
+type TriggerWorkflowJSONBody struct {
+	// GestureId Gesture ID
+	GestureId int `json:"gestureId"`
+}
+
 // UpdateWorkflowJSONBody defines parameters for UpdateWorkflow.
 type UpdateWorkflowJSONBody struct {
 	// Name Workflow name
@@ -64,18 +78,15 @@ type UpdateWorkflowJSONBody struct {
 
 // AssociateWorkflowDevicesJSONBody defines parameters for AssociateWorkflowDevices.
 type AssociateWorkflowDevicesJSONBody struct {
-	// Devices List of devices
-	Devices *[]struct {
-		// Id Device ID
-		Id string `json:"id"`
-
-		// Ip Device IP
-		Ip string `json:"ip"`
-	} `json:"devices,omitempty"`
+	// Devices An array of device IDs to associate with this workflow
+	Devices []string `json:"devices"`
 }
 
 // LoginUserJSONRequestBody defines body for LoginUser for application/json ContentType.
 type LoginUserJSONRequestBody LoginUserJSONBody
+
+// LoginUserWithFaceJSONRequestBody defines body for LoginUserWithFace for application/json ContentType.
+type LoginUserWithFaceJSONRequestBody LoginUserWithFaceJSONBody
 
 // CreateDeviceJSONRequestBody defines body for CreateDevice for application/json ContentType.
 type CreateDeviceJSONRequestBody CreateDeviceJSONBody
@@ -85,6 +96,9 @@ type CreateUserJSONRequestBody CreateUserJSONBody
 
 // CreateWorkflowJSONRequestBody defines body for CreateWorkflow for application/json ContentType.
 type CreateWorkflowJSONRequestBody CreateWorkflowJSONBody
+
+// TriggerWorkflowJSONRequestBody defines body for TriggerWorkflow for application/json ContentType.
+type TriggerWorkflowJSONRequestBody TriggerWorkflowJSONBody
 
 // UpdateWorkflowJSONRequestBody defines body for UpdateWorkflow for application/json ContentType.
 type UpdateWorkflowJSONRequestBody UpdateWorkflowJSONBody
@@ -97,6 +111,9 @@ type ServerInterface interface {
 	// Authenticate user
 	// (POST /auth/login)
 	LoginUser(w http.ResponseWriter, r *http.Request)
+	// Biometrically authenticate user
+	// (POST /auth/login/face)
+	LoginUserWithFace(w http.ResponseWriter, r *http.Request)
 	// Issue new access token
 	// (GET /auth/refresh)
 	RefreshAccessToken(w http.ResponseWriter, r *http.Request)
@@ -127,6 +144,9 @@ type ServerInterface interface {
 	// Create a workflow
 	// (POST /workflow)
 	CreateWorkflow(w http.ResponseWriter, r *http.Request)
+	// Trigger a workflow
+	// (POST /workflow/trigger)
+	TriggerWorkflow(w http.ResponseWriter, r *http.Request)
 	// Delete workflow by ID
 	// (DELETE /workflow/{id})
 	DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string)
@@ -148,6 +168,12 @@ type Unimplemented struct{}
 // Authenticate user
 // (POST /auth/login)
 func (_ Unimplemented) LoginUser(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Biometrically authenticate user
+// (POST /auth/login/face)
+func (_ Unimplemented) LoginUserWithFace(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -211,6 +237,12 @@ func (_ Unimplemented) CreateWorkflow(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
+// Trigger a workflow
+// (POST /workflow/trigger)
+func (_ Unimplemented) TriggerWorkflow(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
 // Delete workflow by ID
 // (DELETE /workflow/{id})
 func (_ Unimplemented) DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string) {
@@ -249,6 +281,20 @@ func (siw *ServerInterfaceWrapper) LoginUser(w http.ResponseWriter, r *http.Requ
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.LoginUser(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// LoginUserWithFace operation middleware
+func (siw *ServerInterfaceWrapper) LoginUserWithFace(w http.ResponseWriter, r *http.Request) {
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.LoginUserWithFace(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -470,6 +516,26 @@ func (siw *ServerInterfaceWrapper) CreateWorkflow(w http.ResponseWriter, r *http
 
 	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		siw.Handler.CreateWorkflow(w, r)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
+// TriggerWorkflow operation middleware
+func (siw *ServerInterfaceWrapper) TriggerWorkflow(w http.ResponseWriter, r *http.Request) {
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TriggerWorkflow(w, r)
 	}))
 
 	for _, middleware := range siw.HandlerMiddlewares {
@@ -720,6 +786,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 		r.Post(options.BaseURL+"/auth/login", wrapper.LoginUser)
 	})
 	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/auth/login/face", wrapper.LoginUserWithFace)
+	})
+	r.Group(func(r chi.Router) {
 		r.Get(options.BaseURL+"/auth/refresh", wrapper.RefreshAccessToken)
 	})
 	r.Group(func(r chi.Router) {
@@ -748,6 +817,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Post(options.BaseURL+"/workflow", wrapper.CreateWorkflow)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/workflow/trigger", wrapper.TriggerWorkflow)
 	})
 	r.Group(func(r chi.Router) {
 		r.Delete(options.BaseURL+"/workflow/{id}", wrapper.DeleteWorkflow)
@@ -791,12 +863,67 @@ func (response LoginUser200JSONResponse) VisitLoginUserResponse(w http.ResponseW
 	return json.NewEncoder(w).Encode(response)
 }
 
-type LoginUser403Response struct {
+type LoginUser401Response struct {
 }
 
-func (response LoginUser403Response) VisitLoginUserResponse(w http.ResponseWriter) error {
-	w.WriteHeader(403)
+func (response LoginUser401Response) VisitLoginUserResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
 	return nil
+}
+
+type LoginUser500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response LoginUser500JSONResponse) VisitLoginUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LoginUserWithFaceRequestObject struct {
+	Body *LoginUserWithFaceJSONRequestBody
+}
+
+type LoginUserWithFaceResponseObject interface {
+	VisitLoginUserWithFaceResponse(w http.ResponseWriter) error
+}
+
+type LoginUserWithFace200JSONResponse struct {
+	AccessToken string `json:"accessToken"`
+}
+
+func (response LoginUserWithFace200JSONResponse) VisitLoginUserWithFaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type LoginUserWithFace401Response struct {
+}
+
+func (response LoginUserWithFace401Response) VisitLoginUserWithFaceResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type LoginUserWithFace500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response LoginUserWithFace500JSONResponse) VisitLoginUserWithFaceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
 }
 
 type RefreshAccessTokenRequestObject struct {
@@ -818,12 +945,26 @@ func (response RefreshAccessToken200JSONResponse) VisitRefreshAccessTokenRespons
 	return json.NewEncoder(w).Encode(response)
 }
 
-type RefreshAccessToken403Response struct {
+type RefreshAccessToken401Response struct {
 }
 
-func (response RefreshAccessToken403Response) VisitRefreshAccessTokenResponse(w http.ResponseWriter) error {
-	w.WriteHeader(403)
+func (response RefreshAccessToken401Response) VisitRefreshAccessTokenResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
 	return nil
+}
+
+type RefreshAccessToken500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response RefreshAccessToken500JSONResponse) VisitRefreshAccessTokenResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
 }
 
 type GetDevicesRequestObject struct {
@@ -841,12 +982,32 @@ type GetDevices200JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 }
 
 func (response GetDevices200JSONResponse) VisitGetDevicesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetDevices500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response GetDevices500JSONResponse) VisitGetDevicesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -865,6 +1026,12 @@ type CreateDevice201JSONResponse struct {
 
 	// Ip Device IP
 	Ip string `json:"ip"`
+
+	// Name Device name
+	Name *string `json:"name,omitempty"`
+
+	// Type Device type
+	Type *string `json:"type,omitempty"`
 }
 
 func (response CreateDevice201JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
@@ -881,6 +1048,20 @@ type CreateDevice400JSONResponse struct {
 func (response CreateDevice400JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateDevice500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response CreateDevice500JSONResponse) VisitCreateDeviceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -912,6 +1093,20 @@ func (response DeleteDevice404JSONResponse) VisitDeleteDeviceResponse(w http.Res
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteDevice500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response DeleteDevice500JSONResponse) VisitDeleteDeviceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetDeviceRequestObject struct {
 	Id string `json:"id"`
 }
@@ -926,6 +1121,12 @@ type GetDevice200JSONResponse struct {
 
 	// Ip Device IP
 	Ip string `json:"ip"`
+
+	// Name Device name
+	Name *string `json:"name,omitempty"`
+
+	// Type Device type
+	Type *string `json:"type,omitempty"`
 }
 
 func (response GetDevice200JSONResponse) VisitGetDeviceResponse(w http.ResponseWriter) error {
@@ -942,6 +1143,20 @@ type GetDevice404JSONResponse struct {
 func (response GetDevice404JSONResponse) VisitGetDeviceResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetDevice500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response GetDevice500JSONResponse) VisitGetDeviceResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -998,6 +1213,20 @@ func (response CreateUser400JSONResponse) VisitCreateUserResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type CreateUser500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response CreateUser500JSONResponse) VisitCreateUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type DeleteUserRequestObject struct {
 	Id string `json:"id"`
 }
@@ -1025,6 +1254,20 @@ func (response DeleteUser404JSONResponse) VisitDeleteUserResponse(w http.Respons
 	return json.NewEncoder(w).Encode(response)
 }
 
+type DeleteUser500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response DeleteUser500JSONResponse) VisitDeleteUserResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type GetWorkflowsRequestObject struct {
 }
 
@@ -1042,6 +1285,12 @@ type GetWorkflows200JSONResponse struct {
 
 			// Ip Device IP
 			Ip string `json:"ip"`
+
+			// Name Device name
+			Name *string `json:"name,omitempty"`
+
+			// Type Device type
+			Type *string `json:"type,omitempty"`
 		} `json:"devices,omitempty"`
 		Id     string `json:"id"`
 		Name   string `json:"name"`
@@ -1052,6 +1301,20 @@ type GetWorkflows200JSONResponse struct {
 func (response GetWorkflows200JSONResponse) VisitGetWorkflowsResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(200)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type GetWorkflows500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response GetWorkflows500JSONResponse) VisitGetWorkflowsResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1072,6 +1335,12 @@ type CreateWorkflow201JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 	Id     string `json:"id"`
 	Name   string `json:"name"`
@@ -1092,6 +1361,58 @@ type CreateWorkflow400JSONResponse struct {
 func (response CreateWorkflow400JSONResponse) VisitCreateWorkflowResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(400)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type CreateWorkflow500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response CreateWorkflow500JSONResponse) VisitCreateWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type TriggerWorkflowRequestObject struct {
+	Body *TriggerWorkflowJSONRequestBody
+}
+
+type TriggerWorkflowResponseObject interface {
+	VisitTriggerWorkflowResponse(w http.ResponseWriter) error
+}
+
+type TriggerWorkflow200Response struct {
+}
+
+func (response TriggerWorkflow200Response) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
+	w.WriteHeader(200)
+	return nil
+}
+
+type TriggerWorkflow401Response struct {
+}
+
+func (response TriggerWorkflow401Response) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type TriggerWorkflow500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response TriggerWorkflow500JSONResponse) VisitTriggerWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1139,6 +1460,12 @@ type GetWorkflow200JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 	Id     string `json:"id"`
 	Name   string `json:"name"`
@@ -1163,6 +1490,20 @@ func (response GetWorkflow404JSONResponse) VisitGetWorkflowResponse(w http.Respo
 	return json.NewEncoder(w).Encode(response)
 }
 
+type GetWorkflow500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response GetWorkflow500JSONResponse) VisitGetWorkflowResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 type UpdateWorkflowRequestObject struct {
 	Id   string `json:"id"`
 	Body *UpdateWorkflowJSONRequestBody
@@ -1180,6 +1521,12 @@ type UpdateWorkflow200JSONResponse struct {
 
 		// Ip Device IP
 		Ip string `json:"ip"`
+
+		// Name Device name
+		Name *string `json:"name,omitempty"`
+
+		// Type Device type
+		Type *string `json:"type,omitempty"`
 	} `json:"devices,omitempty"`
 	Id     string `json:"id"`
 	Name   string `json:"name"`
@@ -1224,20 +1571,14 @@ type AssociateWorkflowDevicesResponseObject interface {
 	VisitAssociateWorkflowDevicesResponse(w http.ResponseWriter) error
 }
 
-type AssociateWorkflowDevices201JSONResponse struct {
-	// Devices List of devices
-	Devices *[]struct {
-		// Id Device ID
-		Id string `json:"id"`
-
-		// Ip Device IP
-		Ip string `json:"ip"`
-	} `json:"devices,omitempty"`
+type AssociateWorkflowDevices200JSONResponse struct {
+	// Devices An array of device IDs associated with this workflow
+	Devices []string `json:"devices"`
 }
 
-func (response AssociateWorkflowDevices201JSONResponse) VisitAssociateWorkflowDevicesResponse(w http.ResponseWriter) error {
+func (response AssociateWorkflowDevices200JSONResponse) VisitAssociateWorkflowDevicesResponse(w http.ResponseWriter) error {
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(201)
+	w.WriteHeader(200)
 
 	return json.NewEncoder(w).Encode(response)
 }
@@ -1264,11 +1605,28 @@ func (response AssociateWorkflowDevices404JSONResponse) VisitAssociateWorkflowDe
 	return json.NewEncoder(w).Encode(response)
 }
 
+type AssociateWorkflowDevices500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response AssociateWorkflowDevices500JSONResponse) VisitAssociateWorkflowDevicesResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Authenticate user
 	// (POST /auth/login)
 	LoginUser(ctx context.Context, request LoginUserRequestObject) (LoginUserResponseObject, error)
+	// Biometrically authenticate user
+	// (POST /auth/login/face)
+	LoginUserWithFace(ctx context.Context, request LoginUserWithFaceRequestObject) (LoginUserWithFaceResponseObject, error)
 	// Issue new access token
 	// (GET /auth/refresh)
 	RefreshAccessToken(ctx context.Context, request RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error)
@@ -1299,6 +1657,9 @@ type StrictServerInterface interface {
 	// Create a workflow
 	// (POST /workflow)
 	CreateWorkflow(ctx context.Context, request CreateWorkflowRequestObject) (CreateWorkflowResponseObject, error)
+	// Trigger a workflow
+	// (POST /workflow/trigger)
+	TriggerWorkflow(ctx context.Context, request TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error)
 	// Delete workflow by ID
 	// (DELETE /workflow/{id})
 	DeleteWorkflow(ctx context.Context, request DeleteWorkflowRequestObject) (DeleteWorkflowResponseObject, error)
@@ -1366,6 +1727,37 @@ func (sh *strictHandler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		sh.options.ResponseErrorHandlerFunc(w, r, err)
 	} else if validResponse, ok := response.(LoginUserResponseObject); ok {
 		if err := validResponse.VisitLoginUserResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// LoginUserWithFace operation middleware
+func (sh *strictHandler) LoginUserWithFace(w http.ResponseWriter, r *http.Request) {
+	var request LoginUserWithFaceRequestObject
+
+	var body LoginUserWithFaceJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.LoginUserWithFace(ctx, request.(LoginUserWithFaceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "LoginUserWithFace")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(LoginUserWithFaceResponseObject); ok {
+		if err := validResponse.VisitLoginUserWithFaceResponse(w); err != nil {
 			sh.options.ResponseErrorHandlerFunc(w, r, err)
 		}
 	} else if response != nil {
@@ -1640,6 +2032,37 @@ func (sh *strictHandler) CreateWorkflow(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+// TriggerWorkflow operation middleware
+func (sh *strictHandler) TriggerWorkflow(w http.ResponseWriter, r *http.Request) {
+	var request TriggerWorkflowRequestObject
+
+	var body TriggerWorkflowJSONRequestBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		sh.options.RequestErrorHandlerFunc(w, r, fmt.Errorf("can't decode JSON body: %w", err))
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TriggerWorkflow(ctx, request.(TriggerWorkflowRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TriggerWorkflow")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TriggerWorkflowResponseObject); ok {
+		if err := validResponse.VisitTriggerWorkflowResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // DeleteWorkflow operation middleware
 func (sh *strictHandler) DeleteWorkflow(w http.ResponseWriter, r *http.Request, id string) {
 	var request DeleteWorkflowRequestObject
@@ -1761,35 +2184,52 @@ func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

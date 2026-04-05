@@ -1,6 +1,7 @@
 delete:
   summary: Delete user by ID
   operationId: deleteUser
+  description: Delete the user matching the given ID.
   security:
     - accessToken: [ ]
   parameters:
@@ -15,3 +16,5 @@ delete:
       description: User record successfully deleted
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

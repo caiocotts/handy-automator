@@ -14,9 +14,9 @@ import (
 	_ "embed"
 	"errors"
 	"fmt"
-	"log"
-	"net"
 )
+
+const internalErrorMessage = "internal server error"
 
 //go:embed openapi_gen.yml
 var Spec []byte
@@ -51,10 +51,15 @@ func (s Server) CreateUser(ctx context.Context, request CreateUserRequestObject)
 			Message: err.Error(),
 		}, nil
 	}
+
 	if err != nil {
-		log.Print(err)
-		return nil, err
+		refCode := logWithRef(err, "CreateUser")
+		return CreateUser500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
+
 	return CreateUser201JSONResponse{
 		Id:       u.Id,
 		Username: u.Username,
@@ -63,9 +68,16 @@ func (s Server) CreateUser(ctx context.Context, request CreateUserRequestObject)
 
 func (s Server) LoginUser(ctx context.Context, request LoginUserRequestObject) (LoginUserResponseObject, error) {
 	u, at, err := s.authService.Login(ctx, request.Body.Username, request.Body.Password)
+	if errors.Is(err, auth.ErrInvalidCredentials) {
+		return LoginUser401Response{}, nil
+	}
+
 	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
+		refCode := logWithRef(err, "LoginUser")
+		return LoginUser500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
 
 	return LoginUser200JSONResponse{
@@ -76,12 +88,35 @@ func (s Server) LoginUser(ctx context.Context, request LoginUserRequestObject) (
 	}, nil
 }
 
+func (s Server) LoginUserWithFace(ctx context.Context, request LoginUserWithFaceRequestObject) (LoginUserWithFaceResponseObject, error) {
+	at, err := s.authService.LoginWithFace(ctx, request.Body.UserId, request.Body.Embedding)
+	if errors.Is(err, auth.ErrInvalidCredentials) || errors.Is(err, auth.ErrNoRegisteredFace) {
+		return LoginUserWithFace401Response{}, nil
+	}
+
+	if err != nil {
+		refCode := logWithRef(err, "LoginUserWithFace")
+		return LoginUserWithFace500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
+	return LoginUserWithFace200JSONResponse{
+		AccessToken: at,
+	}, err
+}
+
 func (s Server) RefreshAccessToken(ctx context.Context, _ RefreshAccessTokenRequestObject) (RefreshAccessTokenResponseObject, error) {
 	at, err := s.authService.Refresh(ctx)
 	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
+		refCode := logWithRef(err, "RefreshAccessToken")
+		return RefreshAccessToken500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
+
 	return RefreshAccessToken200JSONResponse{
 		AccessToken: at,
 	}, nil
@@ -92,21 +127,34 @@ func (s Server) DeleteUser(ctx context.Context, request DeleteUserRequestObject)
 	if errors.Is(err, persistence.ErrNotFound) {
 		return DeleteUser404JSONResponse{Message: err.Error()}, nil
 	}
+
+	if err != nil {
+		refCode := logWithRef(err, "DeleteUser")
+		return DeleteUser500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
 	return DeleteUser204Response{}, nil
 }
 
 func (s Server) CreateDevice(ctx context.Context, request CreateDeviceRequestObject) (CreateDeviceResponseObject, error) {
-	ip := net.ParseIP(request.Body.Ip)
-	if ip == nil {
+	d, err := s.deviceService.Create(ctx, request.Body.Ip)
+	if errors.Is(err, device.ErrInvalidIPFormat) {
 		return CreateDevice400JSONResponse{
 			Message: fmt.Sprintf(`'%s' is not a valid ip`, request.Body.Ip),
 		}, nil
 	}
-	d, err := s.deviceService.Create(ctx, ip)
+
 	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
+		refCode := logWithRef(err, "CreateDevice")
+		return CreateDevice500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
+
 	return CreateDevice201JSONResponse{
 		Id: d.Id,
 		Ip: d.Ip.String(),
@@ -119,37 +167,51 @@ func (s Server) GetDevice(ctx context.Context, request GetDeviceRequestObject) (
 		return GetDevice404JSONResponse{
 			Message: err.Error(),
 		}, nil
+	}
 
-	}
 	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
+		refCode := logWithRef(err, "GetDevice")
+		return GetDevice500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
+
 	return GetDevice200JSONResponse{
 		Id: d.Id,
 		Ip: d.Ip.String(),
-	}, err
+	}, nil
 }
 
 func (s Server) GetDevices(ctx context.Context, _ GetDevicesRequestObject) (GetDevicesResponseObject, error) {
 	devices, err := s.deviceService.GetAll(ctx)
 	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
+		refCode := logWithRef(err, "GetDevices")
+		return GetDevices500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
+
 	deviceStructSlice := make([]struct {
-		Id string `json:"id"`
-		Ip string `json:"ip"`
+		Id   string  `json:"id"`
+		Ip   string  `json:"ip"`
+		Name *string `json:"name,omitempty"`
+		Type *string `json:"type,omitempty"`
 	}, len(devices))
+
 	for i, d := range devices {
 		deviceStructSlice[i] = struct {
-			Id string `json:"id"`
-			Ip string `json:"ip"`
+			Id   string  `json:"id"`
+			Ip   string  `json:"ip"`
+			Name *string `json:"name,omitempty"`
+			Type *string `json:"type,omitempty"`
 		}{
 			Id: d.Id,
 			Ip: d.Ip.String(),
 		}
 	}
+
 	return GetDevices200JSONResponse{
 		Devices: &deviceStructSlice,
 	}, nil
@@ -158,22 +220,35 @@ func (s Server) GetDevices(ctx context.Context, _ GetDevicesRequestObject) (GetD
 func (s Server) DeleteDevice(ctx context.Context, request DeleteDeviceRequestObject) (DeleteDeviceResponseObject, error) {
 	err := s.deviceService.Delete(ctx, request.Id)
 	if errors.Is(err, persistence.ErrNotFound) {
-		return DeleteDevice404JSONResponse{Message: err.Error()}, nil
+		return DeleteDevice404JSONResponse{
+			Message: err.Error(),
+		}, nil
 	}
+
+	if err != nil {
+		refCode := logWithRef(err, "DeleteDevice")
+		return DeleteDevice500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
 	return DeleteDevice204Response{}, nil
 }
 
 func (s Server) CreateWorkflow(ctx context.Context, request CreateWorkflowRequestObject) (CreateWorkflowResponseObject, error) {
-	name := request.Body.Name
-	if name == "" {
+	w, err := s.workflowService.Create(ctx, request.Body.Name)
+	if errors.Is(err, workflow.ErrEmptyName) {
 		return CreateWorkflow400JSONResponse{
 			Message: "name field must not be empty",
 		}, nil
 	}
-	w, err := s.workflowService.Create(ctx, name)
 	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
+		refCode := logWithRef(err, "CreateWorkflow")
+		return CreateWorkflow500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
 
 	return CreateWorkflow201JSONResponse{
@@ -189,28 +264,60 @@ func (s Server) GetWorkflow(ctx context.Context, request GetWorkflowRequestObjec
 	if errors.Is(err, persistence.ErrNotFound) {
 		return GetWorkflow404JSONResponse{
 			Message: err.Error(),
-		}, err
+		}, nil
 	}
+
 	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
+		refCode := logWithRef(err, "GetWorkflow")
+		return GetWorkflow500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
+
+	deviceStructSlice := make([]struct {
+		Id   string  `json:"id"`
+		Ip   string  `json:"ip"`
+		Name *string `json:"name,omitempty"`
+		Type *string `json:"type,omitempty"`
+	}, len(w.Devices))
+
+	for i, d := range w.Devices {
+		deviceStructSlice[i] = struct {
+			Id   string  `json:"id"`
+			Ip   string  `json:"ip"`
+			Name *string `json:"name,omitempty"`
+			Type *string `json:"type,omitempty"`
+		}{
+			Id: d.Id,
+			Ip: d.Ip.String(),
+		}
+	}
+
 	return GetWorkflow200JSONResponse{
-		Id:   w.Id,
-		Name: w.Name,
+		Id:      w.Id,
+		Name:    w.Name,
+		UserId:  w.UserId,
+		Devices: &deviceStructSlice,
 	}, nil
 }
 
 func (s Server) GetWorkflows(ctx context.Context, _ GetWorkflowsRequestObject) (GetWorkflowsResponseObject, error) {
 	workflows, err := s.workflowService.GetAll(ctx)
 	if err != nil {
-		log.Print(err)
-		return nil, err //TODO implement 500 error message with ref code
+		refCode := logWithRef(err, "GetWorkflows")
+		return GetWorkflows500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
 	}
+
 	workflowStructSlice := make([]struct {
 		Devices *[]struct {
-			Id string `json:"id"`
-			Ip string `json:"ip"`
+			Id   string  `json:"id"`
+			Ip   string  `json:"ip"`
+			Name *string `json:"name,omitempty"`
+			Type *string `json:"type,omitempty"`
 		} `json:"devices,omitempty"`
 		Id     string `json:"id"`
 		Name   string `json:"name"`
@@ -220,8 +327,10 @@ func (s Server) GetWorkflows(ctx context.Context, _ GetWorkflowsRequestObject) (
 	for i, w := range workflows {
 		workflowStructSlice[i] = struct {
 			Devices *[]struct {
-				Id string `json:"id"`
-				Ip string `json:"ip"`
+				Id   string  `json:"id"`
+				Ip   string  `json:"ip"`
+				Name *string `json:"name,omitempty"`
+				Type *string `json:"type,omitempty"`
 			} `json:"devices,omitempty"`
 			Id     string `json:"id"`
 			Name   string `json:"name"`
@@ -244,7 +353,30 @@ func (s Server) DeleteWorkflow(context.Context, DeleteWorkflowRequestObject) (De
 	panic("implement me")
 }
 
-func (s Server) AssociateWorkflowDevices(context.Context, AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error) {
-	//TODO implement me
-	panic("implement me")
+func (s Server) AssociateWorkflowDevices(ctx context.Context, request AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error) {
+	deviceIds, err := s.workflowService.AssociateDevices(ctx, request.Id, request.Body.Devices)
+	if err != nil {
+		refCode := logWithRef(err, "AssociateWorkflowDevices")
+		return AssociateWorkflowDevices500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
+	return AssociateWorkflowDevices200JSONResponse{
+		Devices: deviceIds,
+	}, nil
+}
+
+func (s Server) TriggerWorkflow(ctx context.Context, request TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error) {
+	err := s.workflowService.Trigger(ctx, request.Body.GestureId)
+	if err != nil {
+		refCode := logWithRef(err, "TriggerWorkflow")
+		return TriggerWorkflow500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
+	return TriggerWorkflow200Response{}, nil
 }

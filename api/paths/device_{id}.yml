@@ -1,6 +1,7 @@
 get:
   summary: Get device by ID
   operationId: getDevice
+  description: Get information relating to the device matching the given ID.
   security:
     - accessToken: [ ]
   parameters:
@@ -19,9 +20,12 @@ get:
             $ref: ../components/schemas/Device.yml
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml
 delete:
   summary: Delete device by ID
   operationId: deleteDevice
+  description: Delete the device matching the given ID.
   security:
     - accessToken: [ ]
   parameters:
@@ -36,3 +40,5 @@ delete:
       description: Device record successfully deleted
     '404':
       $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

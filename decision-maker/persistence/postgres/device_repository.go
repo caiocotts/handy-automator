@@ -28,7 +28,7 @@ func (r DeviceRepository) Create(ctx context.Context, ip net.IP) (model.Device, 
 	}
 	_, err = r.database.ExecContext(ctx, `insert into "device" values ($1, $2)`, id, ip.String())
 	if err != nil {
-		return model.Device{}, err
+		return model.Device{}, persistence.ParseDBError(err)
 	}
 	return model.Device{
 		Id: id,
@@ -39,35 +39,35 @@ func (r DeviceRepository) Create(ctx context.Context, ip net.IP) (model.Device, 
 func (r DeviceRepository) Get(ctx context.Context, id string) (model.Device, error) {
 	d := model.Device{}
 	var i string
-	err := r.database.QueryRowContext(ctx, `select * from "device" where id = $1`, id).Scan(&d.Id, &i)
+	err := r.database.QueryRowContext(ctx, `select id, ip, name, type from "device" where id = $1`, id).Scan(&d.Id, &i, &d.Name, &d.Type)
 	if errors.Is(err, sql.ErrNoRows) {
 		return model.Device{}, persistence.ErrNotFound
 	}
 	if err != nil {
-		return model.Device{}, err
+		return model.Device{}, persistence.ParseDBError(err)
 	}
 	d.Ip = net.ParseIP(i)
 	return d, nil
 }
 
 func (r DeviceRepository) GetAll(ctx context.Context) ([]model.Device, error) {
-	rows, err := r.database.QueryContext(ctx, `select * from "device"`)
+	rows, err := r.database.QueryContext(ctx, `select id, ip, name, type from "device"`)
 	if err != nil {
-		return nil, err
+		return nil, persistence.ParseDBError(err)
 	}
 	defer rows.Close()
 	var devices []model.Device
 	for rows.Next() {
 		var d model.Device
 		var i string
-		if err := rows.Scan(&d.Id, &i); err != nil {
-			return nil, err
+		if err := rows.Scan(&d.Id, &i, &d.Name, &d.Type); err != nil {
+			return nil, persistence.ParseDBError(err)
 		}
 		d.Ip = net.ParseIP(i)
 		devices = append(devices, d)
 	}
 	if err = rows.Err(); err != nil {
-		return devices, err
+		return devices, persistence.ParseDBError(err)
 	}
 	return devices, nil
 }
@@ -80,7 +80,7 @@ func (r DeviceRepository) Update() (model.Device, error) {
 func (r DeviceRepository) Delete(ctx context.Context, id string) error {
 	res, err := r.database.ExecContext(ctx, `delete from device where id = $1`, id)
 	if err != nil {
-		return err
+		return persistence.ParseDBError(err)
 	}
 	if n, _ := res.RowsAffected(); n == 0 {
 		return persistence.ErrNotFound
