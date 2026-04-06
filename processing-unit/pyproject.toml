@@ -7,7 +7,6 @@ requires-python = ">=3.12"
 dependencies = [
     "deepface>=0.0.98",
     "mediapipe>=0.10.32",
-    "pygrabber>=0.2",
     "pytest>=9.0.2",
     "requests>=2.32.5",
     "scipy>=1.17.0",
