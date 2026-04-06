@@ -1,5 +1,6 @@
 import cv2
-from pygrabber.dshow_graph import FilterGraph
+from cv2_enumerate_cameras import enumerate_cameras
+
 
 def get_available_cameras()-> dict[int, str]:
     """
@@ -8,14 +9,9 @@ def get_available_cameras()-> dict[int, str]:
     Returns: 
         - Dict {int Index : str Camera Name}
     """
-
-    devices = FilterGraph().get_input_devices()
-
     available_cameras = {}
-
-    for device_index, device_name in enumerate(devices):
-        available_cameras[device_index] = device_name
-
+    for camera_info in enumerate_cameras(cv2.CAP_MSMF):
+        available_cameras[camera_info.index] = camera_info.name
     return available_cameras
 
 def get_ptz_camera()-> int|None:
