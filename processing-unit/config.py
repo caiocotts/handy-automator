@@ -1,5 +1,7 @@
 import cv2
-from pygrabber.dshow_graph import FilterGraph
+from cv2_enumerate_cameras import enumerate_cameras
+import platform
+
 
 def get_available_cameras()-> dict[int, str]:
     """
@@ -8,15 +10,26 @@ def get_available_cameras()-> dict[int, str]:
     Returns: 
         - Dict {int Index : str Camera Name}
     """
-
-    devices = FilterGraph().get_input_devices()
+    os = platform.system()
 
     available_cameras = {}
-
-    for device_index, device_name in enumerate(devices):
-        available_cameras[device_index] = device_name
-
-    return available_cameras
+    if os == "Windows":
+        for camera_info in enumerate_cameras(cv2.CAP_MSMF):
+            if camera_info is not None:
+                available_cameras[camera_info.index] = camera_info.name
+        return available_cameras
+    
+    elif os == "Linux":
+        for camera_info in enumerate_cameras(cv2.CAP_V4L2):
+            if camera_info is not None:
+                available_cameras[camera_info.index] = camera_info.name
+        return available_cameras
+    
+    elif os == "Darwin":
+        for camera_info in enumerate_cameras(cv2.CAP_AVFOUNDATION):
+            if camera_info is not None:
+                available_cameras[camera_info.index] = camera_info.name
+        return available_cameras
 
 def get_ptz_camera()-> int|None:
     """
@@ -30,7 +43,6 @@ def get_ptz_camera()-> int|None:
     for keys in available:
         if "vaddio" in available[keys].lower() or "roboshot" in available[keys].lower():
             return keys
-    # Change to None when development is done
     return 0
 
 
