@@ -27,10 +27,11 @@ def auth_user_api_call(embeddings: list[float], username: str) -> str | None:
 
 def workflow_api_call(gesture_id: int, auth_token: str):
     try:
-        payload = {"gestureId": gesture_id}  # Still need to check header names
+        payload = {"gestureId": gesture_id}
         header = {"Authorization": f"Bearer {auth_token}"}
         r = requests.post("http://localhost:3000/api/workflow/trigger", json=payload, headers=header)
-        # print(auth_token)
+        if r.status_code != 200:
+            print(f"Workflow API call failed with status code {r.status_code}: {r.text}")
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         return None
