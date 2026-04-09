@@ -1,5 +1,6 @@
+import os
+os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 import cv2
-# Module Imports
 import face_recognition as fr
 import gesture_recognition as gr
 import api_interface as api
@@ -18,8 +19,10 @@ pr_options = mp.tasks.vision.PoseLandmarkerOptions(
 )
 
 # Rate limiting state
-last_workflow_trigger = {}  # Map of (username, gesture_id) -> timestamp
+last_workflow_trigger = {}  # Map of (user_id, gesture_id) -> timestamp
+last_auth_attempt = {}     # Map of user_id -> timestamp
 WORKFLOW_COOLDOWN = 5.0     # Minimum seconds between triggers for the same gesture
+AUTH_COOLDOWN = 0.3      # Minimum seconds between auth attempts for the same user
 
 def main():
     cam = cv2.VideoCapture(config.get_ptz_camera())
@@ -44,20 +47,24 @@ def main():
                 rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
 
-                username = face_data[0][1]
-                if username not in fr.auth_tokens and username in fr.known_embeddings:
-
-                    embedding = fr.known_embeddings[username]
-                    embedding = embedding.tolist()
+                user_id = face_data[0][1]
+                if user_id != "Unknown" and user_id not in fr.auth_tokens and user_id in fr.known_embeddings:
+                    now = time.time()
                     
-                    auth_token = api.auth_user_api_call(embedding, username)
-                    if auth_token:
-                        print(f'auth token generated')
-                        # Store the token
-                        try:
-                            fr.auth_tokens[username] = auth_token
-                        except Exception as e:
-                            print(f"Error storing auth token: {e}")
+                    # Only attempt authentication if the cooldown period has passed for specific user
+                    if now - last_auth_attempt.get(user_id, 0) > AUTH_COOLDOWN:
+                        last_auth_attempt[user_id] = now
+                        
+                        embedding = fr.known_embeddings[user_id].tolist()
+                        
+                        auth_token = api.auth_user_api_call(embedding, user_id)
+                        if auth_token is not None:
+                            print(f'auth token generated')
+                            # Store the token
+                            try:
+                                fr.auth_tokens[user_id] = auth_token
+                            except Exception as e:
+                                print(f"Error storing auth token: {e}")
             
                 
 

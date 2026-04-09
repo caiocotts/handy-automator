@@ -109,7 +109,7 @@ def authorize(face_img):
     global auth_times
     match = check_faces(face_img)
     if match:
-        print("Authorized:", match)
+        print("Found:", match)
         auth_times[match] = time.time()
         return match
     else:

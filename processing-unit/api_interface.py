@@ -20,6 +20,9 @@ def auth_user_api_call(embeddings: list[float], username: str) -> str | None:
         if r.status_code == 200:
             token_json = r.json()
             return token_json["accessToken"]
+        else:
+            print(f"Auth API call failed with status code {r.status_code}: {r.text}")
+            return None
     except requests.exceptions.RequestException as e:
         print(f"Error: {e}")
         return None
