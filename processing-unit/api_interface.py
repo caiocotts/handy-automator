@@ -1,8 +1,5 @@
 import requests
 
-
-# Need to adjust the header names according to what the api specs say
-
 def ping():
     try:
         r = requests.get("http://localhost:3000/api/ping")
@@ -29,6 +26,8 @@ def auth_user_api_call(embeddings: list[float], username: str) -> str | None:
 
 
 def workflow_api_call(gesture_id: int, auth_token: str):
+    if gesture_id == 0:
+        return None  # No gesture detected, so skip API call
     try:
         payload = {"gestureId": gesture_id}
         header = {"Authorization": f"Bearer {auth_token}"}
@@ -40,15 +39,3 @@ def workflow_api_call(gesture_id: int, auth_token: str):
         return None
 
 
-""" HIGH PRIO
-    - Get all workflows
-    - Get workflow by id
-"""
-""" LOW PRIO
-    - Panning
-    - Tilting
-    - Zooming
-"""
-""" OPTIONAL
-    - Adjust camera settings (ISO, exposure, etc.) or just auto
-"""
