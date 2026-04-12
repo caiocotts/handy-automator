@@ -2,7 +2,7 @@ GOOSE_OPTS=-dir /db/migrations postgres
 TOOL=docker compose run --rm tool
 
 help: ##@Miscellaneous Show this help message
-	@python3 ./scripts/help.py
+	@uv run ./scripts/help.py
 .PHONY: help
 
 dm: ##@Development Start the decision-maker in development mode
@@ -14,8 +14,8 @@ pu: ##@Development Start the processing-unit in development mode
 .PHONY: pu
 
 test-pu: ##@Development Run the processing-unit test suite
-	@cd ./processing-unit && python3 ./test_suite/test.py
-.PHONY: test
+	@cd ./processing-unit && uv run python ./test_suite/test.py
+.PHONY: test-pu
 
 gen-api: lint-api ##@Development Generate API code from the OpenAPI spec
 	@$(TOOL) go generate ./api/...
