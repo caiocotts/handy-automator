@@ -44,6 +44,3 @@ def get_ptz_camera()-> int|None:
         if "vaddio" in available[keys].lower() or "roboshot" in available[keys].lower():
             return keys
     return 0
-
-
-print(get_available_cameras())
