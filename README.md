@@ -32,6 +32,8 @@ DB_PASSWORD=<the-password-to-the-database>
 DB_URL=postgres://postgres:<the-password-to-the-database>@localhost:5432/postgres
 
 GOOSE_DBSTRING=postgres://postgres:<the-password-to-the-database>@localhost:5432/postgres
+
+JWT_SECRET=<enter-the-real-and-true-jwt-secret>
 ```
 
 Use the `Makefile` to run tasks such as: running the system in development mode, managing the
@@ -46,15 +48,19 @@ Database:
   start-db            Instantiate a database container
   stop-db             Stop the database container
   destroy-db          Stop the database container and erase all its data
+  seed-db             Seed the database with sample data
   mup                 Apply all migrations
   mdown               Undo the last migration
   migration           Create a new migration SQL file in db/migrations
 
 Development:
-  dev                 Start handy-automator in development mode
+  dm                  Start the decision-maker in development mode
+  pu                  Start the processing-unit in development mode
+  test-pu             Run the processing-unit test suite
   gen-api             Generate API code from the OpenAPI spec
+  lint-api            Lint OpenAPI spec
 
 Miscellaneous:
-  check-db-status     Check if the database is ready to accept connections (internal)
   help                Show this help message
+  check-db-status     Check if the database is ready to accept connections (internal)
 ```
