@@ -11,7 +11,11 @@ import { Fonts } from '@/constants/theme';
 import { Button } from '@react-navigation/elements';
 import {SafeAreaProvider, SafeAreaView} from "react-native-safe-area-context";
 
+<<<<<<< HEAD
+import React, {useState} from 'react';
+=======
 import React, {useEffect, useState} from 'react';
+>>>>>>> 930d61b2a4b070d2d2304a5e5afee67aba7485bd
 import {Text, TouchableOpacity, View} from 'react-native';
 import {Link} from "expo-router";
 
@@ -27,6 +31,22 @@ export default function TabTwoScreen() {
     const onPress = () => setIsOn(prev => !prev);
 
 
+<<<<<<< HEAD
+    // const device = async {
+    //     GET deviceName;
+    //     GET deviceType;
+    //     GET deviceID;
+    //     GET deviceType;
+    // }
+
+    // let devices: string[][] = [];
+    //
+    // let deviceName;
+    // let deviceType;
+    // let isON;
+    // let device = [deviceName, deviceType, isOn]
+    // This is for automatically adding more devices.
+=======
     const [devices, setDevices] = useState<any[]>([]);
     useEffect(() => {
         getDevices();
@@ -57,6 +77,7 @@ export default function TabTwoScreen() {
     };
 
 
+>>>>>>> 930d61b2a4b070d2d2304a5e5afee67aba7485bd
     return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#D0D0D0', dark: '#353636' }}
