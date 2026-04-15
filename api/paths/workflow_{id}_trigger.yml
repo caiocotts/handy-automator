@@ -1,0 +1,28 @@
+post:
+  summary: Trigger a workflow by ID
+  operationId: triggerWorkflowById
+  description: Trigger the workflow matching the given ID directly, without needing a gesture.
+  security:
+    - accessToken: [ ]
+  parameters:
+    - name: id
+      in: path
+      description: Workflow ID
+      required: true
+      schema:
+        type: string
+  responses:
+    '207':
+      description: Per-device trigger results
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: ../components/schemas/DeviceTriggerStatus.yml
+    '401':
+      $ref: ../components/responses/NotAuthorized.yml
+    '404':
+      $ref: ../components/responses/NotFound.yml
+    '500':
+      $ref: ../components/responses/InternalServerError.yml

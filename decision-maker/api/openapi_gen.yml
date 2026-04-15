@@ -431,6 +431,35 @@ paths:
           $ref: '#/components/responses/BadRequest'
         '404':
           $ref: '#/components/responses/NotFound'
+  /workflow/{id}/trigger:
+    post:
+      summary: Trigger a workflow by ID
+      operationId: triggerWorkflowById
+      description: Trigger the workflow matching the given ID directly, without needing a gesture.
+      security:
+        - accessToken: []
+      parameters:
+        - name: id
+          in: path
+          description: Workflow ID
+          required: true
+          schema:
+            type: string
+      responses:
+        '207':
+          description: Per-device trigger results
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/DeviceTriggerStatus'
+        '401':
+          $ref: '#/components/responses/NotAuthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
   /workflow/{id}/devices:
     put:
       summary: Associate devices to a workflow

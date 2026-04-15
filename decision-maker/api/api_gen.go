@@ -147,6 +147,9 @@ type ServerInterface interface {
 	// Associate devices to a workflow
 	// (PUT /workflow/{id}/devices)
 	AssociateWorkflowDevices(w http.ResponseWriter, r *http.Request, id string)
+	// Trigger a workflow by ID
+	// (POST /workflow/{id}/trigger)
+	TriggerWorkflowById(w http.ResponseWriter, r *http.Request, id string)
 }
 
 // Unimplemented server implementation that returns http.StatusNotImplemented for each endpoint.
@@ -246,6 +249,12 @@ func (_ Unimplemented) UpdateWorkflow(w http.ResponseWriter, r *http.Request, id
 // Associate devices to a workflow
 // (PUT /workflow/{id}/devices)
 func (_ Unimplemented) AssociateWorkflowDevices(w http.ResponseWriter, r *http.Request, id string) {
+	w.WriteHeader(http.StatusNotImplemented)
+}
+
+// Trigger a workflow by ID
+// (POST /workflow/{id}/trigger)
+func (_ Unimplemented) TriggerWorkflowById(w http.ResponseWriter, r *http.Request, id string) {
 	w.WriteHeader(http.StatusNotImplemented)
 }
 
@@ -631,6 +640,37 @@ func (siw *ServerInterfaceWrapper) AssociateWorkflowDevices(w http.ResponseWrite
 	handler.ServeHTTP(w, r)
 }
 
+// TriggerWorkflowById operation middleware
+func (siw *ServerInterfaceWrapper) TriggerWorkflowById(w http.ResponseWriter, r *http.Request) {
+
+	var err error
+
+	// ------------- Path parameter "id" -------------
+	var id string
+
+	err = runtime.BindStyledParameterWithOptions("simple", "id", chi.URLParam(r, "id"), &id, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true})
+	if err != nil {
+		siw.ErrorHandlerFunc(w, r, &InvalidParamFormatError{ParamName: "id", Err: err})
+		return
+	}
+
+	ctx := r.Context()
+
+	ctx = context.WithValue(ctx, AccessTokenScopes, []string{})
+
+	r = r.WithContext(ctx)
+
+	handler := http.Handler(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		siw.Handler.TriggerWorkflowById(w, r, id)
+	}))
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		handler = middleware(handler)
+	}
+
+	handler.ServeHTTP(w, r)
+}
+
 type UnescapedCookieParamError struct {
 	ParamName string
 	Err       error
@@ -791,6 +831,9 @@ func HandlerWithOptions(si ServerInterface, options ChiServerOptions) http.Handl
 	})
 	r.Group(func(r chi.Router) {
 		r.Put(options.BaseURL+"/workflow/{id}/devices", wrapper.AssociateWorkflowDevices)
+	})
+	r.Group(func(r chi.Router) {
+		r.Post(options.BaseURL+"/workflow/{id}/trigger", wrapper.TriggerWorkflowById)
 	})
 
 	return r
@@ -1542,6 +1585,62 @@ func (response AssociateWorkflowDevices500JSONResponse) VisitAssociateWorkflowDe
 	return json.NewEncoder(w).Encode(response)
 }
 
+type TriggerWorkflowByIdRequestObject struct {
+	Id string `json:"id"`
+}
+
+type TriggerWorkflowByIdResponseObject interface {
+	VisitTriggerWorkflowByIdResponse(w http.ResponseWriter) error
+}
+
+type TriggerWorkflowById207JSONResponse []struct {
+	DeviceId string `json:"deviceId"`
+
+	// Error Error message if ok is false
+	Error *string `json:"error,omitempty"`
+	Ok    bool    `json:"ok"`
+}
+
+func (response TriggerWorkflowById207JSONResponse) VisitTriggerWorkflowByIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(207)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type TriggerWorkflowById401Response struct {
+}
+
+func (response TriggerWorkflowById401Response) VisitTriggerWorkflowByIdResponse(w http.ResponseWriter) error {
+	w.WriteHeader(401)
+	return nil
+}
+
+type TriggerWorkflowById404JSONResponse struct {
+	Message string `json:"message"`
+}
+
+func (response TriggerWorkflowById404JSONResponse) VisitTriggerWorkflowByIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(404)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
+type TriggerWorkflowById500JSONResponse struct {
+	Message string `json:"message"`
+
+	// Ref A reference code which can be used to find when the error occurred in the logs.
+	Ref string `json:"ref"`
+}
+
+func (response TriggerWorkflowById500JSONResponse) VisitTriggerWorkflowByIdResponse(w http.ResponseWriter) error {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(500)
+
+	return json.NewEncoder(w).Encode(response)
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// Authenticate user
@@ -1592,6 +1691,9 @@ type StrictServerInterface interface {
 	// Associate devices to a workflow
 	// (PUT /workflow/{id}/devices)
 	AssociateWorkflowDevices(ctx context.Context, request AssociateWorkflowDevicesRequestObject) (AssociateWorkflowDevicesResponseObject, error)
+	// Trigger a workflow by ID
+	// (POST /workflow/{id}/trigger)
+	TriggerWorkflowById(ctx context.Context, request TriggerWorkflowByIdRequestObject) (TriggerWorkflowByIdResponseObject, error)
 }
 
 type StrictHandlerFunc = strictnethttp.StrictHTTPHandlerFunc
@@ -2070,56 +2172,83 @@ func (sh *strictHandler) AssociateWorkflowDevices(w http.ResponseWriter, r *http
 	}
 }
 
+// TriggerWorkflowById operation middleware
+func (sh *strictHandler) TriggerWorkflowById(w http.ResponseWriter, r *http.Request, id string) {
+	var request TriggerWorkflowByIdRequestObject
+
+	request.Id = id
+
+	handler := func(ctx context.Context, w http.ResponseWriter, r *http.Request, request interface{}) (interface{}, error) {
+		return sh.ssi.TriggerWorkflowById(ctx, request.(TriggerWorkflowByIdRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TriggerWorkflowById")
+	}
+
+	response, err := handler(r.Context(), w, r, request)
+
+	if err != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, err)
+	} else if validResponse, ok := response.(TriggerWorkflowByIdResponseObject); ok {
+		if err := validResponse.VisitTriggerWorkflowByIdResponse(w); err != nil {
+			sh.options.ResponseErrorHandlerFunc(w, r, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(w, r, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, gzipped, json marshaled Swagger object
 var swaggerSpec = []string{
 
-	"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",
+	"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",
+	"tRrYp9bsbva/AAAA//9NWF2BOUAAAA==",
 }
 
 // GetSwagger returns the content of the embedded swagger specification file

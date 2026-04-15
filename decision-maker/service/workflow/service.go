@@ -68,6 +68,96 @@ func (s Service) GetAll(ctx context.Context) ([]model.Workflow, error) {
 	return workflows, nil
 }
 
+func (s Service) TriggerById(ctx context.Context, workflowId string) ([]model.DeviceTriggerStatus, error) {
+	w, err := s.workflowRepository.Get(ctx, workflowId)
+	if err != nil {
+		return nil, err
+	}
+
+	targetState := "on"
+	if w.State == "on" {
+		targetState = "off"
+	}
+
+	results := make([]model.DeviceTriggerStatus, len(w.Devices))
+	var wg sync.WaitGroup
+	for i, device := range w.Devices {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			status := model.DeviceTriggerStatus{DeviceId: device.Id, Ok: true}
+
+			ip, ok := s.discoveryService.Resolve(device.Hostname)
+			if !ok {
+				if device.LastKnownIp == nil {
+					status.Ok = false
+					status.Error = fmt.Sprintf("%s: %s", ErrDeviceUnreachable.Error(), device.Hostname)
+					results[i] = status
+					return
+				}
+				ip = device.LastKnownIp
+			}
+
+			stateURL := fmt.Sprintf("http://%s/device/state", ip.String())
+			req, err := http.NewRequestWithContext(ctx, http.MethodGet, stateURL, nil)
+			if err != nil {
+				status.Ok = false
+				status.Error = fmt.Sprintf("error creating state request for device %s: %s", device.Id, err)
+				results[i] = status
+				return
+			}
+			resp, err := http.DefaultClient.Do(req)
+			if err != nil {
+				status.Ok = false
+				status.Error = fmt.Sprintf("error checking state of device %s: %s", device.Id, err)
+				results[i] = status
+				return
+			}
+			var stateResp struct {
+				State string `json:"state"`
+			}
+			if err := json.NewDecoder(resp.Body).Decode(&stateResp); err != nil {
+				resp.Body.Close()
+				status.Ok = false
+				status.Error = fmt.Sprintf("error reading state of device %s: %s", device.Id, err)
+				results[i] = status
+				return
+			}
+			resp.Body.Close()
+
+			if stateResp.State == targetState {
+				results[i] = status
+				return
+			}
+
+			toggleURL := fmt.Sprintf("http://%s/device/toggle", ip.String())
+			req, err = http.NewRequestWithContext(ctx, http.MethodPost, toggleURL, nil)
+			if err != nil {
+				status.Ok = false
+				status.Error = fmt.Sprintf("error creating toggle request for device %s: %s", device.Id, err)
+				results[i] = status
+				return
+			}
+			resp, err = http.DefaultClient.Do(req)
+			if err != nil {
+				status.Ok = false
+				status.Error = fmt.Sprintf("error toggling device %s: %s", device.Id, err)
+				results[i] = status
+				return
+			}
+			resp.Body.Close()
+			results[i] = status
+		}()
+	}
+	wg.Wait()
+
+	if err := s.workflowRepository.UpdateState(ctx, w.Id, targetState); err != nil {
+		return results, err
+	}
+
+	return results, nil
+}
+
 func (s Service) Trigger(ctx context.Context, gestureId int) ([]model.DeviceTriggerStatus, error) {
 	uid := ctx.Value("userId").(string)
 	if uid == "" {

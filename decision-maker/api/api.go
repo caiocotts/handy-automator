@@ -348,6 +348,30 @@ func (s Server) AssociateWorkflowDevices(ctx context.Context, request AssociateW
 	}, nil
 }
 
+func (s Server) TriggerWorkflowById(ctx context.Context, request TriggerWorkflowByIdRequestObject) (TriggerWorkflowByIdResponseObject, error) {
+	statuses, err := s.workflowService.TriggerById(ctx, request.Id)
+	if err != nil {
+		if errors.Is(err, persistence.ErrNotFound) {
+			return TriggerWorkflowById404JSONResponse{Message: "workflow not found"}, nil
+		}
+		refCode := logWithRef(err, "TriggerWorkflowById")
+		return TriggerWorkflowById500JSONResponse{
+			Message: internalErrorMessage,
+			Ref:     refCode,
+		}, nil
+	}
+
+	resp := make(TriggerWorkflowById207JSONResponse, len(statuses))
+	for i, s := range statuses {
+		resp[i].DeviceId = s.DeviceId
+		resp[i].Ok = s.Ok
+		if !s.Ok {
+			resp[i].Error = &s.Error
+		}
+	}
+	return resp, nil
+}
+
 func (s Server) TriggerWorkflow(ctx context.Context, request TriggerWorkflowRequestObject) (TriggerWorkflowResponseObject, error) {
 	statuses, err := s.workflowService.Trigger(ctx, request.Body.GestureId)
 	if err != nil {

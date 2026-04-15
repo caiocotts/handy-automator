@@ -28,6 +28,8 @@ paths:
     $ref: paths/workflow_trigger.yml
   /workflow/{id}:
     $ref: paths/workflow_{id}.yml
+  /workflow/{id}/trigger:
+    $ref: paths/workflow_{id}_trigger.yml
   /workflow/{id}/devices:
     $ref: paths/workflow_{id}_devices.yml
 components:
