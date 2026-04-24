@@ -8,6 +8,7 @@ import pose as pr
 import mediapipe as mp
 import time
 import config
+from UserRegistery import UserRegistry
 
 
 pr_model_path = './database/models/pose_landmarker_full.task'
@@ -18,11 +19,7 @@ pr_options = mp.tasks.vision.PoseLandmarkerOptions(
     result_callback=pr.update_pose_result
 )
 
-# Rate limiting state
-last_workflow_trigger = {}  # Map of (user_id, gesture_id) -> timestamp
-last_auth_attempt = {}     # Map of user_id -> timestamp
-WORKFLOW_COOLDOWN = 5.0     # Minimum seconds between triggers for the same gesture
-AUTH_COOLDOWN = 0.3      # Minimum seconds between auth attempts for the same user
+user_registry = UserRegistry()
 
 def main():
     cam = cv2.VideoCapture(config.get_ptz_camera())
@@ -38,6 +35,9 @@ def main():
             ret, frame = cam.read()
             if not ret: break
 
+            # Keep the runtime user registry in sync with loaded embeddings.
+            user_registry.upsert_from_embeddings(fr.known_embeddings)
+
             # 1. Run face detection first to check for authorized users
             face_data = fr.detecting_bounding_box(frame)
 
@@ -48,18 +48,19 @@ def main():
                 mp_image = mp.Image(image_format=mp.ImageFormat.SRGB, data=rgb_frame)
 
                 user_id = face_data[0][1]
-                if user_id != "Unknown" and user_id not in fr.auth_tokens and user_id in fr.known_embeddings:
+                user = user_registry.get_user(user_id) if user_id != "Unknown" else None
+                if user_id != "Unknown" and user is not None and user.auth_token is None:
                     now = time.time()
                     
                     # Only attempt authentication if the cooldown period has passed for specific user
-                    if now - last_auth_attempt.get(user_id, 0) > AUTH_COOLDOWN:
-                        last_auth_attempt[user_id] = now
-                        
-                        embedding = fr.known_embeddings[user_id].tolist()
+                    if user.can_attempt_auth(now=now):
+                        user.mark_auth_attempt(now=now)
+                        embedding = user.to_embedding_list()
                         
                         auth_token = api.auth_user_api_call(embedding, user_id)
                         if auth_token is not None:
                             print(f'auth token generated')
+                            user.authenticate(auth_token, now=now)
                             # Store the token
                             try:
                                 fr.auth_tokens[user_id] = auth_token
@@ -96,14 +97,14 @@ def main():
                                         label_text = f"{display_name} + hand"
                                         gesture_id = gr.get_hardcode_index(gr.latest_result.gestures[0][0].category_name)
                                         
-                                        if gesture_id != 0 and name in fr.auth_tokens:
+                                        active_user = user_registry.get_user(name)
+                                        if gesture_id != 0 and active_user is not None and active_user.auth_token is not None:
                                             current_time = time.time()
-                                            trigger_key = (name, gesture_id)
                                             
                                             # Only call the API if the cooldown has expired
-                                            if current_time - last_workflow_trigger.get(trigger_key, 0) > WORKFLOW_COOLDOWN:
-                                                api.workflow_api_call(gesture_id, fr.auth_tokens[name])
-                                                last_workflow_trigger[trigger_key] = current_time
+                                            if active_user.can_trigger_gesture(gesture_id, now=current_time):
+                                                api.workflow_api_call(gesture_id, active_user.auth_token)
+                                                active_user.mark_gesture_triggered(gesture_id, now=current_time)
                                                 
                                         cv2.putText(frame, label_text, (fx, fy-10),
                                                     cv2.FONT_HERSHEY_SIMPLEX, 0.7, (0, 255, 255), 2)
